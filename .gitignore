@@ -1,0 +1,7 @@
+﻿node_modules/
+dist-electron/
+electron-dist/
+*.exe
+*.blockmap
+.opencode/
+AGENTS.md

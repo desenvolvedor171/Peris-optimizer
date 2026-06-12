@@ -1,0 +1,43 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: transparent; color: #e4e4e7; overflow: hidden; }
+
+#root {
+  background: #08080f;
+  border-radius: 12px;
+  overflow: hidden;
+  height: 100vh;
+  border: 1px solid #1e1e2e;
+}
+
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #a855f780; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #a855f7; }
+
+@keyframes rgb-flow {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+
+.rgb-line {
+  height: 3px;
+  border-radius: 12px 12px 0 0;
+  background: linear-gradient(90deg, #ff0000, #ff8800, #ffff00, #00ff00, #00ffff, #0088ff, #8800ff, #ff00ff, #ff0000);
+  background-size: 200% 100%;
+  animation: rgb-flow 3s linear infinite;
+}
+
+.rgb-text {
+  background: linear-gradient(90deg, #ff0000, #ff8800, #ffff00, #00ff00, #00ffff, #0088ff, #8800ff, #ff00ff, #ff0000);
+  background-size: 200% 100%;
+  animation: rgb-flow 3s linear infinite;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+main { scroll-behavior: smooth; }

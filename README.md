@@ -87,4 +87,4 @@ O .exe será gerado em `dist-electron/` e deve ser copiado para a pasta `Optimiz
 
 ## Aviso Legal
 
-Este software é fornecido "como está", sem garantias de qualquer tipo. O uso é por sua conta e risco. Sempre crie um ponto de restauração antes de aplicar otimizações.
+Este software é fornecido para otimizações limpas em seu dispositivo e não causará nenhum dano. Mas sempre crie um ponto de restauração antes de aplicar otimizações, caso você não goste do resultado — mas o painel tem opção de reverter opção por opção.

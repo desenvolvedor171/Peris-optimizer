@@ -75,16 +75,6 @@ O painel exibe todos os módulos em grid de 3 colunas com ícones SVG, nome, des
 - PowerShell (scripts de otimização)
 - Vite (build)
 
-## Build
-
-```powershell
-npm install
-npx vite build
-npx electron-builder --win
-```
-
-O .exe será gerado em `dist-electron/` e deve ser copiado para a pasta `Optimizer/`.
-
 ## Aviso Legal
 
 Este software é fornecido para otimizações limpas em seu dispositivo e não causará nenhum dano. Mas o recomendado é que você use a opção "Ponto de Restauração" disponível no próprio painel antes de aplicar qualquer um dos módulos de otimizações.

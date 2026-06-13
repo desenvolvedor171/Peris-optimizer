@@ -1,65 +1,71 @@
 # PERIS FPS Optimizer 2.2.0
 
-Painel de otimização para Windows com monitoramento de hardware em tempo real, 25 módulos de otimização e interface dark theme com neon roxo.
+Painel de otimização para Windows com monitoramento de hardware em tempo real, 23 módulos de otimização e interface dark theme com neon roxo.
+
+![Painel PERIS FPS Optimizer](screenshot.png)
 
 ## Download
 
-Baixe a versão mais recente em [Releases](https://github.com/PERIS-FPS-OPTIMIZER/peris-fps-optimizer/releases)
+Baixe a versão mais recente em [Releases](https://github.com/desenvolvedor171/Peris-optimizer/releases)
 
 ## Requisitos
 
 - Windows 10/11 (64-bit)
 - Executar como Administrador
 
-## Funcionalidades
+## Interface
 
 ### Aba Sistema
 - **Informações do PC**: CPU, GPU, RAM, Placa-mãe, BIOS, Monitores, Discos com barras de uso
 - **Status em tempo real**: CPU, GPU, RAM, Temperatura, Rede (atualização a cada 5 segundos)
 
-### Aba Otimização (25 módulos)
+### Aba Otimização (23 módulos)
+
+O painel exibe todos os módulos em grid de 3 colunas com ícones SVG, nome, descrição e status visual.
 
 | Módulo | Descrição |
 |--------|-----------|
-| Criar Ponto de Restauração | Cria restore point antes de qualquer alteração |
-| Telemetria | Desativa rastreamento e coleta de dados do Windows |
-| Serviços para Apostado | Ativa serviços necessários para jogos online (PcaSvc, DiagTrack, SysMain, Sysmon, Firewall, USN Journal, TPM, Secure Boot) |
-| Bloatware | Remove Microsoft Edge, OneDrive, apps indesejados e bloatware |
-| Energia | Ativa plano de Alta Performance e desativa hibernação |
-| Interface | Desativa efeitos visuais para ganho de performance |
-| Menu Iniciar | Remove delay do menu iniciar |
-| Timer 0.5ms | Ativa timer de alta precisão (NtSetTimerResolution) |
-| Input Lag | Otimiza prioridade de GPU e desativa aceleração do mouse |
-| Ping | Otimiza TCP/IP para menor latência (Nagle off, TCPAck) |
-| Limpar Cache | Limpa temp, drivers suspeitos, crash dumps, prefetch, .NET, DNS, lixeira |
-| GPU | Otimiza configurações da placa de vídeo NVIDIA |
-| Memória | Otimiza gerenciamento de RAM |
-| Disco I/O | Otimiza performance do disco (NTFS, LastAccess) |
-| Game Mode | Ativa Game Mode do Windows |
-| DNS | Configura DNS Cloudflare + Google para menor latência |
-| Tarefas | Desativa tarefas agendadas pesadas |
-| Spooler | Desativa serviço de impressão |
-| Windows Update | Controla atualizações do Windows |
-| Boot | Acelera inicialização (timeout 0, sem boot log) |
-| Benchmark | Mede uso atual da CPU |
-| Integridade | Verifica integridade do sistema (SFC + DISM) |
-| Desativar Defender | Desativa completamente o Windows Defender (com aviso) |
-| Otimização Agressiva | Desativa serviços pesados para máximo desempenho (com aviso) |
+| Ponto de Restauração | Cria um restore point do sistema antes de aplicar qualquer alteração |
+| Telemetria | Desativa rastreamento Microsoft, Cortana, Widgets, Copilot e coleta de dados |
+| Bloatware | Remove Microsoft Edge, OneDrive, Teams e apps indesejados do Windows |
+| Plano de Energia | Ativa plano de alta performance e desativa hibernação |
+| Interface | Desativa animações, transparência, snapping e atalhos visuais do Windows |
+| Menu Iniciar | Remove delay ao abrir menus e o menu iniciar |
+| Timer 0.5ms | Ativa timer de alta precisão global e desativa HPET |
+| Input Lag | Otimiza prontidão de GPU, mouse e teclado para menor input lag |
+| Rede / TCP | Otimiza TCP/IP, reseta rede, configura DoH e desativa throttling |
+| Limpar Cache | Limpa temp, prefetch, DNS, crash dumps, Windows Update cache, lixeira |
+| GPU | Ativa modo de performance máxima na placa de vídeo |
+| Memória RAM | Otimiza memória, limpa standby e desativa Memory Compression |
+| Disco I/O | Otimiza TRIM, NTFS, verifica SMART e desativa indexação |
+| Game Mode | Ativa modo jogo e configura Game Bar do Windows |
+| DNS Rápido | Configura DNS Cloudflare + Google para menor latência |
+| Tarefas Agendadas | Desativa tarefas pesadas do Windows que consomem recursos |
+| Spooler | Desativa serviço de impressão (libera recursos) |
+| Windows Update | Para e desativa atualizações automáticas do Windows |
+| Boot Rápido | Acelera inicialização desativando timeout e log de boot |
+| Integridade | Executa SFC + DISM para verificar e corrigir arquivos do sistema |
+| Desativar Defender | Desativa Windows Defender completo incluindo Tamper Protection |
+| Serviços para Apostado | Ativa serviços para não tomar W.O (KellerServices) |
+| Otimização Agressiva | Desativa serviços pesados para máximo desempenho |
 
-### Aba Ajustes
-- **Ajustes do Windows**: Opções visuais, rede, privacidade, energia
-- **Atalhos**: Links úteis para ferramentas do sistema
+### Botões de Controle
 
-### Aba Relatório
-- **Exportar**: Salva relatório completo do sistema em arquivo
+- **Usar todos os módulos**: Aplica todos os módulos de uma vez (cria restore point antes, exclui módulos de risco)
+- **Desfazer tudo**: Reverte todas as alterações aplicadas usando o script peris-revert.ps1
+- **Reiniciar PC**: Botão aparece após módulos que precisam de restart (apenas 4 módulos)
 
-## Funcionalidades Extras
+### Funcionalidades Extras
 
-- **Reiniciar PC**: Botão aparece após módulos que precisam de restart
-- **Usar Todos os Módulos**: Aplica todos de uma vez (exceto Otimização Agressiva e Serviços para Apostado)
-- **Alertas de Confirmação**: Avisa antes de módulos destrutivos
-- **Verde ✓**: Módulos completados ficam marcados com verde
-- **Transições**: Animações suaves entre abas
+- **Checkmark verde**: Módulos completados ficam marcados com ícone verde ✓
+- **Log em tempo real**: Painel lateral mostra outputs dos módulos com cores por tipo ([OK] verde, [ERR] vermelho, [PROG] ciano pulsante)
+- **Dot de status**: Vermelho com brilho quando ocioso, verde com brilho quando executando
+- **Revert individual**: Clique direito em módulo completado oferece opção de reverter apenas esse módulo
+- **Alerta de confirmação**: Avisa antes de re-executar módulo já aplicado
+- **Janela 1400x900**: Painel frameless com cantos arredondados (12px)
+- **WINDOWS badge**: Exibe versão do Windows ao lado do botão minimizar
+- **Transições suaves**: Animações fade+slide entre abas (150ms)
+- **Ícones SVG**: Todos os módulos possuem ícones vetoriais personalizados
 
 ## Tecnologias
 
@@ -76,6 +82,8 @@ npm install
 npx vite build
 npx electron-builder --win
 ```
+
+O .exe será gerado em `dist-electron/` e deve ser copiado para a pasta `Optimizer/`.
 
 ## Aviso Legal
 

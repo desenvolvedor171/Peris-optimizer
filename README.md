@@ -17,7 +17,6 @@ Baixe a versão mais recente em [Releases](https://github.com/desenvolvedor171/P
 
 ### Aba Sistema
 - **Informações do PC**: CPU, GPU, RAM, Placa-mãe, BIOS, Monitores, Discos com barras de uso
-- **Status em tempo real**: CPU, GPU, RAM, Temperatura, Rede (atualização a cada 5 segundos)
 
 ### Aba Otimização (23 módulos)
 

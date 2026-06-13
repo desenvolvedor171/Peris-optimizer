@@ -48,32 +48,29 @@ const icons: Record<string, string> = {
 };
 
 const modules = [
-  { id: "backup", name: "Ponto de Restauração", desc: "Criar restore point do sistema", color: "#3b82f6" },
-  { id: "telemetria", name: "Telemetria", desc: "Desativar rastreamento Microsoft", color: "#ef4444" },
-  { id: "gaming-services", name: "Serviços para apostado", desc: "Ativar serviços essenciais", color: "#a855f7" },
-  { id: "desativar-apostado", name: "Otimização Agressiva", desc: "Aumentar desempenho desativando serviços", color: "#f43f5e" },
-  { id: "bloatware", name: "Bloatware", desc: "Remover apps pré-instalados", color: "#f97316" },
-  { id: "power", name: "Plano de Energia", desc: "Alta performance + desativar hibernação", color: "#eab308" },
-  { id: "ui", name: "Interface", desc: "Desativar animações do Windows", color: "#ec4899" },
-  { id: "startmenu-delay", name: "Menu Iniciar", desc: "Zero delay ao abrir menus", color: "#14b8a6" },
-  { id: "monitor-05ms", name: "Timer 0.5ms", desc: "Timer de alta precisão global", color: "#06b6d4" },
-  { id: "inputlag", name: "Input Lag", desc: "GPU priority + mouse/teclado", color: "#f43f5e" },
-  { id: "ping", name: "Rede / TCP", desc: "Otimizar pacotes TCP/IP", color: "#10b981" },
-  { id: "cache", name: "Limpar Cache", desc: "Temp, prefetch, DNS, Windows Update", color: "#8b5cf6" },
-  { id: "gpu-opt", name: "GPU", desc: "Performance gráfica máxima", color: "#d946ef" },
-  { id: "memory", name: "Memória RAM", desc: "Otimizar uso de memória", color: "#6366f1" },
-  { id: "disk-io", name: "Disco I/O", desc: "TRIM SSD + NTFS otimizado", color: "#64748b" },
-  { id: "gamemode", name: "Game Mode", desc: "Ativar modo jogo do Windows", color: "#84cc16" },
-  { id: "dns-opt", name: "DNS Rápido", desc: "Cloudflare + Google DNS", color: "#0ea5e9" },
-  { id: "scheduled", name: "Tarefas Agendadas", desc: "Desativar tarefas pesadas", color: "#f59e0b" },
-  { id: "spooler", name: "Spooler", desc: "Desativar impressão", color: "#78716c" },
-  { id: "winupdate", name: "Windows Update", desc: "Controle total de atualizações", color: "#06b6d4" },
-  { id: "boot", name: "Boot Rápido", desc: "Acelerar inicialização", color: "#ef4444" },
-  { id: "benchmark", name: "Benchmark", desc: "Testar performance do sistema", color: "#22c55e" },
-  { id: "profiles", name: "Perfis", desc: "Salvar / carregar configurações", color: "#3b82f6" },
-  { id: "export", name: "Exportar Relatório", desc: "Salvar resultado em arquivo", color: "#9ca3af" },
-  { id: "integrity", name: "Integridade", desc: "SFC + DISM verificar sistema", color: "#10b981" },
-  { id: "defender-off", name: "Desativar Defender", desc: "Desativar Windows Defender completo", color: "#ef4444" },
+  { id: "backup", name: "Ponto de RestauraÃ§Ã£o", desc: "Cria um restore point do sistema antes de aplicar qualquer tweak", color: "#3b82f6" },
+  { id: "telemetria", name: "Telemetria", desc: "Desativa rastreamento Microsoft, Cortana, Widgets, Copilot e Teams", color: "#ef4444" },
+  { id: "bloatware", name: "Bloatware", desc: "Remove Microsoft Edge, OneDrive, Teams e apps prÃ©-instalados do Windows", color: "#f97316" },
+  { id: "power", name: "Plano de Energia", desc: "Ativa plano de alta performance e desativa hibernaÃ§Ã£o", color: "#eab308" },
+  { id: "ui", name: "Interface", desc: "Desativa animaÃ§Ãµes, transparÃªncia, snapping e ativa modo noturno", color: "#ec4899" },
+  { id: "startmenu-delay", name: "Menu Iniciar", desc: "Remove delay ao abrir menus e o menu iniciar", color: "#14b8a6" },
+  { id: "monitor-05ms", name: "Timer 0.5ms", desc: "Ativa timer de alta precisÃ£o global e desativa HPET", color: "#06b6d4" },
+  { id: "inputlag", name: "Input Lag", desc: "Otimiza prioridade de GPU, mouse e teclado para menor atraso", color: "#f43f5e" },
+  { id: "ping", name: "Rede / TCP", desc: "Otimiza TCP/IP, reseta rede, configura DoH e desativa throttling", color: "#10b981" },
+  { id: "cache", name: "Limpar Cache", desc: "Limpa temp, prefetch, DNS, crash dumps, Windows Update e lixeira", color: "#8b5cf6" },
+  { id: "gpu-opt", name: "GPU", desc: "Ativa modo de performance mÃ¡xima na placa de vÃ­deo", color: "#d946ef" },
+  { id: "memory", name: "MemÃ³ria RAM", desc: "Otimiza memÃ³ria, limpa standby e desativa compressÃ£o", color: "#6366f1" },
+  { id: "disk-io", name: "Disco I/O", desc: "Otimiza TRIM, NTFS, verifica SMART e desativa indexaÃ§Ã£o", color: "#64748b" },
+  { id: "gamemode", name: "Game Mode", desc: "Ativa modo jogo e configura Game Bar do Windows", color: "#84cc16" },
+  { id: "dns-opt", name: "DNS RÃ¡pido", desc: "Configura DNS Cloudflare + Google para menor latÃªncia", color: "#0ea5e9" },
+  { id: "scheduled", name: "Tarefas Agendadas", desc: "Desativa tarefas pesadas do Windows que consomem recursos", color: "#f59e0b" },
+  { id: "spooler", name: "Spooler", desc: "Desativa serviÃ§o de impressÃ£o (libera recursos)", color: "#78716c" },
+  { id: "winupdate", name: "Windows Update", desc: "Para e desativa atualizaÃ§Ãµes automÃ¡ticas do Windows", color: "#06b6d4" },
+  { id: "boot", name: "Boot RÃ¡pido", desc: "Acelera inicializaÃ§Ã£o desativando timeout e log de boot", color: "#ef4444" },
+  { id: "integrity", name: "Integridade", desc: "Executa SFC + DISM para verificar e corrigir arquivos do sistema", color: "#10b981" },
+  { id: "defender-off", name: "Desativar Defender", desc: "Desativa Windows Defender completo incluindo Tamper Protection", color: "#ef4444" },
+  { id: "gaming-services", name: "ServiÃ§os para apostado", desc: "Ativa serviÃ§os pra nÃ£o tomar W.O", color: "#a855f7" },
+  { id: "desativar-apostado", name: "OtimizaÃ§Ã£o Agressiva", desc: "Desativa serviÃ§os pesados para mÃ¡ximo desempenho (pode causar W.O.)", color: "#f43f5e" },
 ];
 
 type Tab = "sistema" | "tweaks";
@@ -87,6 +84,8 @@ function App() {
   const [running, setRunning] = useState<string | null>(null);
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [needsRestart, setNeedsRestart] = useState(false);
+  const [tooltip, setTooltip] = useState<{ mod: typeof modules[0]; x: number; y: number } | null>(null);
+  const [clock, setClock] = useState("");
   const logEndRef = useRef<HTMLDivElement>(null);
   const pendingTab = useRef<Tab | null>(null);
 
@@ -98,7 +97,11 @@ function App() {
       setCompleted(new Set(c.filter((id: string) => validIds.has(id))));
     }).catch(() => {});
     const iv = setInterval(() => { window.electronAPI.getHWStatus().then(setHw).catch(() => {}); }, 5000);
-    return () => clearInterval(iv);
+    const clockIv = setInterval(() => {
+      const now = new Date();
+      setClock(now.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }));
+    }, 1000);
+    return () => { clearInterval(iv); clearInterval(clockIv); };
   }, []);
 
   useEffect(() => { logEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [logs]);
@@ -124,47 +127,55 @@ function App() {
     const mod = modules.find(m => m.id === id);
     if (id === "desativar-apostado") {
       const confirmed = window.confirm(
-        "Se vc joga apostado não recomendo ativar, pois desliga os processos necessário e causa W.O, mas aumenta o desempenho e melhora a sensibilidade.\n\nDeseja continuar?"
+        "Se vc joga apostado nÃ£o recomendo ativar, pois desliga os processos necessÃ¡rio e causa W.O, mas aumenta o desempenho e melhora a sensibilidade.\n\nDeseja continuar?"
       );
       if (!confirmed) return;
     } else if (id === "bloatware") {
       const confirmed = window.confirm(
-        "Serão removidos do sistema:\n\n" +
-        "• Microsoft Edge (remoção completa)\n" +
-        "• Microsoft 3D Builder\n" +
-        "• Bing Weather / News / Finance / Sports\n" +
-        "• Get Help / Get Started\n" +
-        "• Solitário Collection\n" +
-        "• People / Skype\n" +
-        "• Office Hub / OneConnect\n" +
-        "• Windows Feedback Hub\n" +
-        "• Zune Music / Video\n" +
-        "• Windows Maps\n" +
-        "• Mixed Reality Portal\n" +
-        "• Xbox App / Game Overlay\n" +
-        "• Your Phone / Alarms\n" +
-        "• King.com / Disney / Spotify\n" +
-        "• OneDrive\n\n" +
+        "SerÃ£o removidos do sistema:\n\n" +
+        "â€¢ Microsoft Edge (remoÃ§Ã£o completa)\n" +
+        "â€¢ Microsoft 3D Builder\n" +
+        "â€¢ Bing Weather / News / Finance / Sports\n" +
+        "â€¢ Get Help / Get Started\n" +
+        "â€¢ SolitÃ¡rio Collection\n" +
+        "â€¢ People / Skype\n" +
+        "â€¢ Office Hub / OneConnect\n" +
+        "â€¢ Windows Feedback Hub\n" +
+        "â€¢ Zune Music / Video\n" +
+        "â€¢ Windows Maps\n" +
+        "â€¢ Mixed Reality Portal\n" +
+        "â€¢ Xbox App / Game Overlay\n" +
+        "â€¢ Your Phone / Alarms\n" +
+        "â€¢ King.com / Disney / Spotify\n" +
+        "â€¢ OneDrive\n\n" +
         "Deseja continuar?"
       );
       if (!confirmed) return;
     } else if (id === "defender-off") {
       const confirmed = window.confirm(
-        "ATENÇÃO: Isso irá desativar completamente o Windows Defender!\n\n" +
-        "Seu sistema ficará sem proteção contra vírus e malware.\n" +
-        "Recomendo instalar um antivírus alternativo antes de continuar.\n\n" +
+        "ATENÃ‡ÃƒO: Isso irÃ¡ desativar completamente o Windows Defender!\n\n" +
+        "Seu sistema ficarÃ¡ sem proteÃ§Ã£o contra vÃ­rus e malware.\n" +
+        "Recomendo instalar um antivÃ­rus alternativo antes de continuar.\n\n" +
         "Deseja continuar?"
       );
       if (!confirmed) return;
     } else if (completed.has(id)) {
       const confirmed = window.confirm(
-        `"${mod?.name || id}" já foi aplicado!\n\nDeseja executar novamente?`
+        `"${mod?.name || id}" jÃ¡ foi aplicado!\n\nDeseja executar novamente?`
       );
       if (!confirmed) return;
     }
     setRunning(id);
     setLogs([]);
-    const onLog = (log: LogEntry) => setLogs(prev => [...prev, log]);
+    const onLog = (log: LogEntry) => setLogs(prev => {
+      if(log.level === "prog"){
+        const updated = [...prev];
+        if(updated.length > 0){ updated[updated.length - 1] = log; }
+        else{ updated.push(log); }
+        return updated;
+      }
+      return [...prev, log];
+    });
     try {
       const result = await window.electronAPI.runModule(id, onLog);
       setCompleted(prev => {
@@ -175,7 +186,7 @@ function App() {
       });
       if (result.restart) setNeedsRestart(true);
     } catch {
-      setLogs(prev => [...prev, { level: "err", text: "Erro ao executar módulo", ts: Date.now() }]);
+      setLogs(prev => [...prev, { level: "err", text: "Erro ao executar mÃ³dulo", ts: Date.now() }]);
     }
     setRunning(null);
   }, [running, completed]);
@@ -197,8 +208,9 @@ function App() {
       <div className="rgb-line h-[3px] shrink-0"></div>
       <header className="h-14 bg-[#0c0c14]/95 backdrop-blur-sm border-b border-[#1e1e2e] flex items-center justify-between px-5 shrink-0" style={{ WebkitAppRegion: "drag" } as any}>
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "rgba(255,255,255,0.03)" }}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center relative" style={{ background: "rgba(255,255,255,0.03)" }}>
+            <div className="absolute inset-0 rounded-xl opacity-20" style={{ background: "radial-gradient(circle at center, #a855f7 0%, transparent 70%)" }}></div>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="relative z-10">
               <defs>
                 <linearGradient id="rgb-bolt" x1="0%" y1="0%" x2="100%" y2="100%">
                   <stop offset="0%" stopColor="#ff0000"><animate attributeName="stop-color" values="#ff0000;#ff8800;#ffff00;#00ff00;#00ffff;#0088ff;#8800ff;#ff00ff;#ff0000" dur="3s" repeatCount="indefinite" /></stop>
@@ -212,16 +224,27 @@ function App() {
             </svg>
           </div>
           <div>
-            <h1 className="text-lg font-bold leading-none rgb-text">PERIS</h1>
-            <p className="text-[10px] font-bold tracking-[0.3em] rgb-text">FPS OPTIMIZER</p>
+            <h1 className="text-lg font-black leading-none rgb-text tracking-widest" style={{ fontFamily: "'Segoe UI', sans-serif", letterSpacing: "0.15em" }}>PERIS FPS</h1>
+            <p className="text-[10px] font-black tracking-[0.5em] rgb-text mt-0.5" style={{ fontFamily: "'Segoe UI', sans-serif" }}>OPTIMIZER</p>
           </div>
+          <div className="h-6 w-px bg-[#2a2a3a] ml-2"></div>
+          <span className="text-[10px] text-zinc-600 font-semibold tracking-wider">v2.2.0</span>
         </div>
-        <div className="flex gap-1.5" style={{ WebkitAppRegion: "no-drag" } as any}>
-          <button onClick={() => window.electronAPI.minimizeApp()} className="w-8 h-8 rounded-lg bg-[#1a1a2a] hover:bg-[#25253a] flex items-center justify-center text-zinc-500 hover:text-white transition-all duration-200">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="5" y1="12" x2="19" y2="12" /></svg>
+        <div className="flex items-center gap-1.5" style={{ WebkitAppRegion: "no-drag" } as any}>
+          <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-[#1a1a2a] border border-[#2a2a3a]">
+            <svg width="13" height="13" viewBox="0 0 88 88" fill="none">
+              <rect x="2" y="2" width="40" height="40" rx="2" fill="#a855f7"/>
+              <rect x="46" y="2" width="40" height="40" rx="2" fill="#a855f7"/>
+              <rect x="2" y="46" width="40" height="40" rx="2" fill="#a855f7"/>
+              <rect x="46" y="46" width="40" height="40" rx="2" fill="#a855f7"/>
+            </svg>
+            <span className="text-[10px] text-zinc-400 font-bold tracking-wider">WINDOWS {sys.os !== "Carregando..." ? sys.os.match(/\d+/)?.[0] || "" : ""}</span>
+          </div>
+          <button onClick={() => window.electronAPI.minimizeApp()} className="w-7 h-7 rounded-lg bg-[#1a1a2a] hover:bg-[#25253a] flex items-center justify-center text-zinc-500 hover:text-white transition-all duration-200 border border-transparent hover:border-[#2a2a3a]">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="5" y1="12" x2="19" y2="12" /></svg>
           </button>
-          <button onClick={() => window.electronAPI.closeApp()} className="w-8 h-8 rounded-lg bg-red-950/50 hover:bg-red-600/80 flex items-center justify-center text-red-400 hover:text-white transition-all duration-200">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+          <button onClick={() => window.electronAPI.closeApp()} className="w-7 h-7 rounded-lg bg-[#1a1a2a] hover:bg-red-600/80 flex items-center justify-center text-zinc-500 hover:text-white transition-all duration-200 border border-transparent hover:border-red-500/50">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
           </button>
         </div>
       </header>
@@ -247,20 +270,20 @@ function App() {
                 ]} />
                 <SysBlock title="Processador" items={[
                   { label: "CPU", value: sys.cpu },
-                  { label: "Núcleos / Threads", value: `${sys.cpuCores} / ${sys.cpuThreads}` },
+                  { label: "NÃºcleos / Threads", value: `${sys.cpuCores} / ${sys.cpuThreads}` },
                   { label: "Socket", value: sys.cpuSocket },
-                  { label: "Frequência", value: sys.cpuTdp },
+                  { label: "FrequÃªncia", value: sys.cpuTdp },
                 ]} />
-                <SysBlock title="Placa de Vídeo" items={[
+                <SysBlock title="Placa de VÃ­deo" items={[
                   { label: "GPU", value: sys.gpu },
                   { label: "Driver", value: sys.gpuDriver },
                 ]} />
                 <SysBlock title="Monitor" items={[
                   { label: "Monitor", value: sys.monitor },
-                  { label: "Resolução", value: sys.monitorRes },
-                  { label: "Taxa de Atualização", value: sys.monitorHz },
+                  { label: "ResoluÃ§Ã£o", value: sys.monitorRes },
+                  { label: "Taxa de AtualizaÃ§Ã£o", value: sys.monitorHz },
                 ]} />
-                <SysBlock title="Memória RAM" items={[
+                <SysBlock title="MemÃ³ria RAM" items={[
                   { label: "Total", value: sys.ramTotal },
                 ]} />
                 <div className="bg-[#12121c] border border-[#1e1e2e] rounded-xl p-4 hover:border-neon/20 transition-colors duration-300">
@@ -290,7 +313,7 @@ function App() {
                     <div className="text-zinc-500 text-sm">{sys.storage}</div>
                   )}
                 </div>
-                <SysBlock title="Placa-Mãe" items={[
+                <SysBlock title="Placa-MÃ£e" items={[
                   { label: "Modelo", value: sys.mbModel },
                   { label: "Fabricante", value: sys.manufacturer },
                   { label: "BIOS", value: sys.bios },
@@ -300,92 +323,231 @@ function App() {
           )}
 
           {tab === "tweaks" && (
-            <div className="space-y-3 pt-2">
-              <div className="flex items-center justify-between mb-1">
-                <p className="text-zinc-500 text-xs">{completed.size}/{modules.length} módulos aplicados</p>
-                <button onClick={() => {
-                  const excluded = ["desativar-apostado", "gaming-services"];
-                  const pending = modules.filter(m => !completed.has(m.id) && !excluded.includes(m.id));
-                  if (pending.length === 0) { window.confirm("Todos os módulos já foram aplicados!"); return; }
-                  const confirmed = window.confirm(
-                    `Serão aplicados ${pending.length} módulos.\n\nAs opções "Otimização Agressiva" e "Serviços para apostado" não serão usadas, pois são funções contrárias uma da outra.\n\nDeseja continuar?`
-                  );
-                  if (!confirmed) return;
-                  let i = 0;
-                  const runNext = () => {
-                    if (i >= pending.length) return;
-                    runModule(pending[i].id);
-                    i++;
-                  };
-                  runNext();
-                }}
-                  disabled={!!running}
-                  className="px-4 py-1.5 rounded-lg bg-neon/10 border border-neon/25 text-neon text-xs font-bold hover:bg-neon/20 transition-all duration-200 disabled:opacity-30">
-                  Usar todos os módulos
-                </button>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5">
-                {modules.map(mod => {
-                  const done = completed.has(mod.id);
-                  const isRunning = running === mod.id;
-                  return (
-                    <button key={mod.id} onClick={() => runModule(mod.id)} disabled={!!running}
-                      className={`group relative flex items-center gap-3 p-3 rounded-xl border text-left transition-all duration-300
-                        ${done ? "bg-emerald-950/20 border-emerald-500/30 hover:border-emerald-400/50" :
-                          isRunning ? "bg-neon/5 border-neon/40 animate-pulse" :
-                          "bg-[#11111b] border-[#1e1e2e] hover:border-[#2a2a3e] hover:bg-[#15151f]"}`}
-                      style={!done && !isRunning ? { borderLeftColor: mod.color, borderLeftWidth: "3px" } : {}}>
-                      {done && (
-                        <div className="absolute top-2 right-2 w-4 h-4 rounded-full bg-emerald-500 flex items-center justify-center">
-                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg>
-                        </div>
-                      )}
-                      <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 transition-colors duration-200"
-                        style={{ background: done ? "rgba(16,185,129,0.15)" : isRunning ? "rgba(168,85,247,0.15)" : `${mod.color}15` }}>
-                        <span style={{ color: done ? "#10b981" : isRunning ? "#a855f7" : mod.color }}>
-                          <Icon d={icons[mod.id] || icons.backup} size={18} />
-                        </span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className={`font-semibold text-sm leading-tight ${done ? "text-emerald-300" : "text-zinc-200"}`}>{mod.name}</h4>
-                        <p className="text-zinc-400 text-xs mt-0.5 truncate">{mod.desc}</p>
-                      </div>
+            <div className="flex gap-4 pt-2 h-full">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-zinc-500 text-xs">{completed.size}/{modules.length} mÃ³dulos aplicados</p>
+                  <div className="flex items-center gap-2">
+                    {completed.size > 0 && (
+                      <button onClick={async () => {
+                        const modulesToRevert = [...completed];
+                        const confirmed = window.confirm(
+                          `SerÃ£o desfeitos ${modulesToRevert.length} mÃ³dulos aplicados:\n\n${modulesToRevert.map(id => modules.find(m => m.id === id)?.name || id).join(", ")}\n\nDeseja continuar?`
+                        );
+                        if (!confirmed) return;
+                        setRunning("revert");
+                        setLogs([]);
+                        const onLog = (log: LogEntry) => setLogs(prev => [...prev, log]);
+                        try {
+                          const result = await window.electronAPI.revertModules(modulesToRevert, onLog);
+                          setCompleted(new Set());
+                          window.electronAPI.saveCompleted([]);
+                          setNeedsRestart(!!result.restart);
+                        } catch {
+                          setLogs(prev => [...prev, { level: "err", text: "Erro ao desfazer mÃ³dulos", ts: Date.now() }]);
+                        }
+                        setRunning(null);
+                      }}
+                        disabled={!!running}
+                        className="px-4 py-1.5 rounded-lg bg-red-950/30 border border-red-500/25 text-red-400 text-xs font-bold hover:bg-red-950/50 hover:border-red-500/40 transition-all duration-200 disabled:opacity-30">
+                        Desfazer tudo
+                      </button>
+                    )}
+                    <button onClick={async () => {
+                      const excluded = ["desativar-apostado", "gaming-services", "defender-off", "integrity"];
+                      let pending = modules.filter(m => !completed.has(m.id) && !excluded.includes(m.id));
+                      if (pending.length === 0) { window.confirm("Todos os mÃ³dulos jÃ¡ foram aplicados!"); return; }
+
+                      // Sempre garantir que backup rode primeiro
+                      if(!completed.has("backup")){
+                        const backupMod = modules.find(m => m.id === "backup")!;
+                        pending = [backupMod, ...pending.filter(m => m.id !== "backup")];
+                      }
+
+                      const confirmed = window.confirm(
+                        `SerÃ£o aplicados ${pending.length} mÃ³dulos.\n\nUm ponto de restauraÃ§Ã£o do sistema serÃ¡ criado automaticamente antes de iniciar.\n\nAs opÃ§Ãµes "OtimizaÃ§Ã£o Agressiva", "ServiÃ§os para apostado" e "Desativar Defender" nÃ£o serÃ£o usadas.\n\nDeseja continuar?`
+                      );
+                      if (!confirmed) return;
+
+                      const currentCompleted = new Set(completed);
+
+                      for(let i = 0; i < pending.length; i++){
+                        const id = pending[i].id;
+                        const mod = pending[i];
+
+                        // Confirmacoes por modulo
+                        if(id === "desativar-apostado"){
+                          if(!window.confirm("Se vc joga apostado nÃ£o recomendo ativar...\n\nDeseja continuar?")) continue;
+                        }else if(id === "bloatware"){
+                          if(!window.confirm("SerÃ£o removidos: Edge, OneDrive, Teams, apps prÃ©-instalados...\n\nDeseja continuar?")) continue;
+                        }else if(id === "defender-off"){
+                          if(!window.confirm("ATENÃ‡ÃƒO: Isso irÃ¡ desativar completamente o Windows Defender!\n\nDeseja continuar?")) continue;
+                        }else if(currentCompleted.has(id)){
+                          if(!window.confirm(`"${mod.name}" jÃ¡ foi aplicado!\n\nDeseja executar novamente?`)) continue;
+                        }
+
+                        setRunning(id);
+                        setLogs([]);
+                        const onLog = (log: LogEntry) => setLogs(prev => {
+                          if(log.level === "prog"){
+                            const updated = [...prev];
+                            if(updated.length > 0){ updated[updated.length - 1] = log; }
+                            else{ updated.push(log); }
+                            return updated;
+                          }
+                          return [...prev, log];
+                        });
+                        try{
+                          const result = await window.electronAPI.runModule(id, onLog);
+                          currentCompleted.add(id);
+                          setCompleted(new Set(currentCompleted));
+                          window.electronAPI.saveCompleted([...currentCompleted]);
+                          if(result.restart) setNeedsRestart(true);
+                        }catch{
+                          setLogs(prev => [...prev, { level: "err", text: "Erro ao executar mÃ³dulo", ts: Date.now() }]);
+                        }
+                        setRunning(null);
+                      }
+                    }}
+                      disabled={!!running}
+                      className="px-4 py-1.5 rounded-lg bg-neon/10 border border-neon/25 text-neon text-xs font-bold hover:bg-neon/20 transition-all duration-200 disabled:opacity-30">
+                      Usar todos os mÃ³dulos
                     </button>
-                  );
-                })}
-              </div>
-              {logs.length > 0 && (
-                <div className="bg-[#0a0a12] border border-[#1e1e2e] rounded-xl p-3 max-h-48 overflow-y-auto mt-2">
-                  <h4 className="text-neon font-bold text-xs mb-2 tracking-wider uppercase">Log</h4>
-                  {logs.map((log, i) => (
-                    <div key={i} className={`text-xs py-0.5 font-mono leading-relaxed ${
-                      log.level === "err" ? "text-red-400" : log.level === "warn" ? "text-yellow-400" :
-                      log.level === "ok" ? "text-emerald-400" : log.level === "head" ? "text-neon font-bold" : "text-zinc-500"
-                    }`}>{log.text}</div>
-                  ))}
-                  <div ref={logEndRef} />
-                </div>
-              )}
-              {needsRestart && (
-                <div className="flex items-center gap-3 mt-3 p-3 bg-red-950/30 border border-red-500/30 rounded-xl">
-                  <div className="flex-1">
-                    <p className="text-red-300 text-sm font-bold">Reinicialização necessária</p>
-                    <p className="text-red-400/60 text-xs">Algumas alterações só terão efeito após reiniciar o PC.</p>
                   </div>
-                  <button onClick={() => {
-                    if (window.confirm("Tem certeza que deseja reiniciar o PC agora?")) {
-                      window.electronAPI.restartPC();
-                    }
-                  }}
-                    className="px-5 py-2.5 rounded-lg bg-red-600 hover:bg-red-500 text-white text-sm font-bold transition-all duration-200 shadow-[0_0_20px_rgba(239,68,68,0.3)] hover:shadow-[0_0_30px_rgba(239,68,68,0.5)]">
-                    Reiniciar PC
-                  </button>
                 </div>
-              )}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                  {modules.map(mod => {
+                    const done = completed.has(mod.id);
+                    const isRunning = running === mod.id;
+                    return (
+                      <button key={mod.id} onClick={() => runModule(mod.id)} disabled={!!running}
+                        onContextMenu={(e) => {
+                          e.preventDefault();
+                          if(!done || running) return;
+                          const confirmed = window.confirm(`Deseja desfazer o mÃ³dulo "${mod.name}"?`);
+                          if(!confirmed) return;
+                          setRunning("revert");
+                          setLogs([]);
+                          const onLog = (log: LogEntry) => setLogs(prev => [...prev, log]);
+                          window.electronAPI.revertModules([mod.id], onLog).then((result) => {
+                            setCompleted(prev => {
+                              const nc = new Set(prev);
+                              nc.delete(mod.id);
+                              window.electronAPI.saveCompleted([...nc]);
+                              return nc;
+                            });
+                            setNeedsRestart(!!result.restart);
+                          }).catch(() => {
+                            setLogs(prev => [...prev, { level: "err", text: "Erro ao desfazer mÃ³dulo", ts: Date.now() }]);
+                          }).finally(() => setRunning(null));
+                        }}
+                        onMouseEnter={(e) => {
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          const tooltipWidth = 280;
+                          const centerX = window.innerWidth / 2;
+                          const isRightHalf = rect.left > centerX;
+                          setTooltip({ mod, x: isRightHalf ? rect.left - tooltipWidth - 12 : rect.right + 12, y: rect.top });
+                        }}
+                        onMouseMove={(e) => {
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          const tooltipWidth = 280;
+                          const centerX = window.innerWidth / 2;
+                          const isRightHalf = rect.left > centerX;
+                          setTooltip({ mod, x: isRightHalf ? rect.left - tooltipWidth - 12 : rect.right + 12, y: rect.top });
+                        }}
+                        onMouseLeave={() => setTooltip(null)}
+                        className={`group relative flex items-center gap-3 p-3 rounded-xl border text-left transition-all duration-300
+                          ${done ? "bg-emerald-950/20 border-emerald-500/30 hover:border-emerald-400/50" :
+                            isRunning ? "bg-neon/5 border-neon/40 animate-pulse" :
+                            "bg-[#11111b] border-[#1e1e2e] hover:border-[#2a2a3e] hover:bg-[#15151f]"}`}
+                        style={!done && !isRunning ? { borderLeftColor: mod.color, borderLeftWidth: "3px" } : {}}>
+                        {done && (
+                          <div className="absolute top-2 right-2 w-4 h-4 rounded-full bg-emerald-500 flex items-center justify-center">
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg>
+                          </div>
+                        )}
+                        <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 transition-colors duration-200"
+                          style={{ background: done ? "rgba(16,185,129,0.15)" : isRunning ? "rgba(168,85,247,0.15)" : `${mod.color}15` }}>
+                          <span style={{ color: done ? "#10b981" : isRunning ? "#a855f7" : mod.color }}>
+                            <Icon d={icons[mod.id] || icons.backup} size={18} />
+                          </span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className={`font-semibold text-sm leading-tight ${done ? "text-emerald-300" : "text-zinc-200"}`}>{mod.name}</h4>
+                          <p className="text-zinc-400 text-xs mt-0.5 truncate">{mod.desc}</p>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="w-72 shrink-0 flex flex-col gap-3" style={{ maxHeight: "calc(100vh - 80px)" }}>
+                {needsRestart && (
+                  <div className="flex items-center gap-3 p-3 bg-red-950/30 border border-red-500/30 rounded-xl">
+                    <div className="flex-1">
+                      <p className="text-red-300 text-sm font-bold">Reiniciar</p>
+                      <p className="text-red-400/60 text-[10px]">AlteraÃ§Ãµes sÃ³ terÃ£o efeito apÃ³s reiniciar</p>
+                    </div>
+                    <button onClick={() => {
+                      if (window.confirm("Tem certeza que deseja reiniciar o PC agora?")) {
+                        window.electronAPI.restartPC();
+                      }
+                    }}
+                      className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white text-xs font-bold transition-all duration-200 shadow-[0_0_20px_rgba(239,68,68,0.3)] hover:shadow-[0_0_30px_rgba(239,68,68,0.5)]">
+                      Reiniciar PC
+                    </button>
+                  </div>
+                )}
+
+                <div className="bg-[#0c0c14] border border-[#1a1a2a] rounded-xl p-3 overflow-hidden flex flex-col" style={{ maxHeight: "calc(100vh - 120px)" }}>
+                  <div className="flex items-center gap-2.5 pb-2 border-b border-[#1a1a2a]">
+                    <div className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${running ? "bg-emerald-300 shadow-[0_0_10px_rgba(110,231,183,0.9),0_0_20px_rgba(52,211,153,0.5)]" : "bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.9),0_0_20px_rgba(220,38,38,0.5)]"}`}></div>
+                    <h4 className="text-white font-bold text-xs tracking-wider uppercase">Log</h4>
+                    {running && <span className="text-[10px] text-emerald-400/80 font-semibold ml-auto">{running === "revert" ? "revertendo..." : "executando..."}</span>}
+                  </div>
+                  <div className="flex-1 overflow-y-auto space-y-0.5" style={{ scrollBehavior: "smooth", maxHeight: "calc(100vh - 160px)" }}>
+                    {logs.map((log, i) => (
+                      <div key={i} className={`text-[11px] py-0.5 font-mono leading-relaxed transition-all duration-200 ${
+                        log.level === "err" ? "text-red-400" : log.level === "warn" ? "text-yellow-400" :
+                        log.level === "ok" ? "text-emerald-400" : log.level === "head" ? "text-neon font-bold" :
+                        log.level === "prog" ? "text-cyan-400 log-progress" : "text-zinc-500"
+                      }`} style={{ animation: log.level !== "prog" ? "fadeInLog 0.2s ease-out" : undefined }}>{log.text}</div>
+                    ))}
+                    <div ref={logEndRef} />
+                  </div>
+                </div>
+              </div>
             </div>
           )}
         </div>
       </main>
+
+      {tooltip && (
+        <div
+          className="fixed z-50 pointer-events-none"
+          style={{ left: tooltip.x, top: tooltip.y }}
+        >
+          <div className="bg-[#12121c] border border-neon/30 rounded-xl p-4 shadow-[0_0_20px_rgba(168,85,247,0.2)] max-w-xs" style={{ animation: "fadeIn 0.15s ease-out" }}>
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: `${tooltip.mod.color}20` }}>
+                <span style={{ color: tooltip.mod.color }}>
+                  <Icon d={icons[tooltip.mod.id] || icons.backup} size={14} />
+                </span>
+              </div>
+              <h4 className="text-white font-bold text-sm">{tooltip.mod.name}</h4>
+            </div>
+            <p className="text-zinc-400 text-xs leading-relaxed">{tooltip.mod.desc}</p>
+            <div className="mt-2 pt-2 border-t border-[#1e1e2e]">
+              {completed.has(tooltip.mod.id) ? (
+                <p className="text-red-400/80 text-[10px] font-semibold tracking-wider uppercase">Clique direito para desfazer</p>
+              ) : (
+                <p className="text-neon/60 text-[10px] font-semibold tracking-wider uppercase">Clique para executar</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

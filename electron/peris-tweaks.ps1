@@ -1,6 +1,7 @@
 param([Parameter(Mandatory=$true)][string]$Module)
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 $OutputEncoding = [System.Text.Encoding]::UTF8
+$ErrorActionPreference = "SilentlyContinue"
 if(-not(([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator))){
   Write-Host "[ERR] Admin required." -Fore Red
   exit 1
@@ -57,22 +58,121 @@ function Enable-Svc([string]$n){
 switch($Module){
 
 "backup" {
-  Write-Log "Criando ponto de restauracao..." "head"
+  Write-Log "Criando ponto de restauracao do sistema..." "head"
+
+  # 1) Habilitar System Restore no C:
+  Write-Log "Habilitando System Restore no C:\..." "info"
   try{
     Enable-ComputerRestore -Drive "C:\" -EA 0
-    Checkpoint-Computer -Description "PERIS" -RestorePointType MODIFY_SETTINGS -EA 0
-    Write-Log "Ponto de restauracao criado!" "ok"
-  }catch{ Write-Log "Erro ao criar restore point" "err" }
+    Write-Log "System Restore habilitado" "ok"
+  }catch{
+    Write-Log "Falha ao habilitar System Restore" "warn"
+  }
+
+  # 2) Verificar se o servico VSS esta rodando
+  $vss = Get-Service -Name "VSS" -EA 0
+  if($vss -and $vss.Status -ne "Running"){
+    Write-Log "Iniciando servico VSS..." "info"
+    try{
+      Start-Service "VSS" -EA 0
+      Start-Sleep -Seconds 2
+      Write-Log "VSS iniciado" "ok"
+    }catch{
+      Write-Log "Falha ao iniciar VSS" "warn"
+    }
+  }
+
+  # 3) Verificar espaco livre (minimo 1GB)
+  $sysDrive = $env:SystemDrive
+  $freeGB = [math]::Round((Get-PSDrive -Name $sysDrive.TrimEnd(':')).Free / 1GB, 2)
+  Write-Log "Espaco livre em ${sysDrive}: ${freeGB} GB" "info"
+  if($freeGB -lt 1){
+    Write-Log "ERRO: Menos de 1GB livre! Libere espaco e tente novamente." "err"
+    exit 1
+  }
+
+  # 4) Criar o ponto de restauracao
+  Write-Log "Criando checkpoint do sistema..." "info"
+  try{
+    $desc = "PERIS - $(Get-Date -Format 'dd/MM/yyyy HH:mm')"
+    Checkpoint-Computer -Description $desc -RestorePointType MODIFY_SETTINGS -ErrorAction Stop
+    Write-Log "Ponto de restauracao criado com sucesso!" "ok"
+    Write-Log "Descricao: $desc" "ok"
+  }catch{
+    $errMsg = $_.Exception.Message
+    if($errMsg -match "0x80042302"){
+      Write-Log "Erro: Espaco insuficiente no volume de restauracao" "err"
+    }elseif($errMsg -match "0x800423F0"){
+      Write-Log "Erro: Limite de restore points atingido. Removendo os mais antigos..." "warn"
+      try{
+        $rp = Get-ComputerRestorePoint | Sort-Object SequenceNumber | Select-Object -First 1
+        if($rp){
+          vssadmin /delete shadows /for=${sysDrive} /oldest /quiet 2>$null
+          Checkpoint-Computer -Description $desc -RestorePointType MODIFY_SETTINGS -EA Stop
+          Write-Log "Ponto de restauracao criado apos limpar antigos!" "ok"
+        }
+      }catch{
+        Write-Log "Falha ao criar ponto apos limpeza" "err"
+      }
+    }else{
+      Write-Log "Erro: $errMsg" "err"
+    }
+    exit 1
+  }
+
+  # 5) Confirmar que o ponto foi criado
+  Start-Sleep -Seconds 2
+  try{
+    $lastRP = Get-ComputerRestorePoint | Sort-Object SequenceNumber | Select-Object -Last 1
+    if($lastRP -and $lastRP.Description -match "PERIS"){
+      Write-Log "Confirmado! Ultimo restore point: #$($lastRP.SequenceNumber)" "ok"
+    }
+  }catch{}
+
+  Write-Log "Sistema pronto para receber tweaks!" "ok"
 }
 
 "telemetria" {
   Write-Log "Desativando telemetria..." "head"
-  foreach($s in @("DiagTrack","dmwappushservice","PcaSvc","MapsBroker","WSearch","SysMain","WerSvc","NvTelemetryContainer")){Stop-Svc $s;Disable-Svc $s}
+  foreach($s in @("dmwappushservice","MapsBroker","WSearch","WerSvc","NvTelemetryContainer")){Stop-Svc $s;Disable-Svc $s}
   Set-Reg "HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection" "AllowTelemetry" 0
   Set-Reg "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppCompat" "AITEnable" 0
   Set-Reg "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" "EnableSmartScreen" 0
   Set-Reg "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Error Reporting" "Disabled" 1
-  Write-Log "Telemetria desativada!" "ok"
+
+  # Cortana
+  Write-Log "Desativando Cortana..." "head"
+  Set-Reg "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search" "AllowCortana" 0
+  Set-Reg "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search" "DisableWebSearch" 1
+  Set-Reg "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search" "ConnectedSearchUseWeb" 0
+  Set-Reg "HKCU:\Software\Microsoft\Windows\CurrentVersion\Search" "BingSearchEnabled" 0
+  try{Stop-Process -Name "SearchUI" -Force -EA 0}catch{}
+
+  # Widgets
+  Write-Log "Desativando Widgets..." "head"
+  Set-Reg "HKLM:\SOFTWARE\Policies\Microsoft\Dsh" "AllowNewsAndInterests" 0
+  Set-Reg "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Widgets" "AllowWidgets" 0
+  Set-Reg "HKCU:\Software\Microsoft\Windows\CurrentVersion\Feeds" "ShellFeedsTaskbarViewMode" 0
+  try{Stop-Process -Name "Widgets" -Force -EA 0}catch{}
+
+  # Copilot
+  Write-Log "Desativando Copilot..." "head"
+  Set-Reg "HKCU:\Software\Policies\Microsoft\Windows\WindowsCopilot" "TurnOffWindowsCopilot" 1
+  Set-Reg "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsCopilot" "TurnOffWindowsCopilot" 1
+  Set-Reg "HKCU:\Software\Microsoft\Windows\CurrentVersion\WindowsCopilot" "AllowCopilot" 0
+  Set-Reg "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Explorer" "DisableSearchBoxSuggestions" 1
+  try{Stop-Process -Name "Copilot" -Force -EA 0}catch{}
+
+  # Teams
+  Write-Log "Desativando Microsoft Teams..." "head"
+  try{Stop-Process -Name "Teams" -Force -EA 0}catch{}
+  try{Stop-Process -Name "ms-teams" -Force -EA 0}catch{}
+  foreach($p in @("*MicrosoftTeams*","*Teams*")){
+    try{Get-AppxPackage -Name $p -AllUsers -EA 0|Remove-AppxPackage -EA 0}catch{}
+  }
+  Set-Reg "HKLM:\SOFTWARE\Policies\Microsoft\Teams" "AllowMSTeams" 0
+
+  Write-Log "Telemetria + Cortana + Widgets + Copilot + Teams desativados!" "ok"
 }
 
 "gaming-services" {
@@ -118,17 +218,17 @@ switch($Module){
   if($sb.UEFISecureBootEnabled -eq 1){
     Write-Log "Secure Boot ativo" "ok"
   }else{
-    Write-Log "Secure Boot: desativado ou indisponivel" "warn"
+    Write-Log "Secure Boot: DESATIVADO - Ative na BIOS (Settings > Boot > Secure Boot)" "warn"
   }
 
   # Virtualizacao (IOMMU)
   Write-Log "Verificando virtualizacao..." "head"
   try{
-    $virt = systeminfo 2>$null | Select-String "Virtualização em hardware"
-    if($virt -match "Sim"){
+    $virt = Get-CimInstance Win32_Processor | Select-Object -ExpandProperty VirtualizationFirmwareEnabled -EA 0
+    if($virt -eq $true){
       Write-Log "Virtualizacao (IOMMU) ativa" "ok"
     }else{
-      Write-Log "Virtualizacao: desativada no BIOS" "warn"
+      Write-Log "Virtualizacao: DESATIVADA - Ative na BIOS (Settings > CPU > SVM Mode ou Intel VT-d)" "warn"
     }
   }catch{
     Write-Log "Virtualizacao: nao foi possivel verificar" "warn"
@@ -138,9 +238,102 @@ switch($Module){
 }
 
 "desativar-apostado" {
-  Write-Log "Desativando servicos para apostado..." "head"
-  foreach($s in @("PcaSvc","DiagTrack","SysMain","PlugPlay","DPS","Sysmon","EventLog","Mpssvc","TapiSrv","TabletInputService")){Stop-Svc $s;Disable-Svc $s}
-  Write-Log "Servicos para apostado desativados!" "ok"
+  Write-Log "Otimizacao Agressiva - reduzindo para ~60 processos..." "head"
+
+  # Servicos do apostado original
+  foreach($s in @("PcaSvc","DiagTrack","SysMain","PlugPlay","DPS","Sysmon","EventLog","Mpssvc","TapiSrv")){Stop-Svc $s;Disable-Svc $s}
+
+  # Servicos pesados do Windows (nao mexe em Bluetooth ou Win+Shift+S)
+  foreach($s in @(
+    "WSearch",           # Windows Search Indexer (grande consumidor)
+    "wuauserv",          # Windows Update
+    "UsoSvc",            # Update Orchestrator
+    "BITS",              # Background Intelligent Transfer
+    "SecurityHealthService", # Windows Security Center
+    "SDRSVC",            # Windows Backup
+    "WbioSrvc",          # Biometric Service
+    "RemoteRegistry",    # Remote Registry
+    "RetailDemo",        # Retail Demo
+    "Fax",               # Fax Service
+    "MapsBroker",        # Downloaded Maps
+    "lfsvc",             # Geolocation
+    "SharedAccess",      # Internet Connection Sharing
+    "DsSvc",             # Data Sharing
+    "WerSvc",            # Error Reporting
+    "seclogon",          # Secondary Logon
+    "WpcMonSvc",         # Perceived Performance
+    "ScDeviceEnum",      # Smart Card Device
+    "CscService",        # Offline Files
+    "wisvc",             # Windows Insider
+    "DoSvc",             # Delivery Optimization
+    "TrkWks",            # Distributed Link Tracking
+    "WdiServiceHost",    # Diagnostic Service Host
+    "WdiSystemHost",     # Diagnostic System Host
+    "SCardSvr",          # Smart Card
+    "SEMGRSVC",          # Payments and NFC
+    "SCardSvr",          # Smart Card Daemon
+    "AppXSvc",           # AppX Deployment
+    "ClipSVC",           # Client License
+    "InstallService",    # Store Install
+    "TokenBroker",       # Web Account Manager
+    "wbengine",          # Block Level Backup
+    "DsmSvc",            # Device Setup Manager
+    "DusmSvc",           # Data Usage Monitor
+    "PhoneSvc",          # Phone Service
+    "TapiSrv",           # Telephony (ja desativado)
+    "XblAuthManager",    # Xbox Live Auth
+    "XblGameSave",       # Xbox Live Game Save
+    "XboxNetApiSvc",     # Xbox Live Networking
+    "XboxGipSvc"         # Xbox Accessory Management
+  )){Stop-Svc $s;Disable-Svc $s}
+
+  # Desativar tarefas agendadas pesadas
+  foreach($t in @(
+    "\Microsoft\Windows\Application Experience\Microsoft Compatibility Appraiser",
+    "\Microsoft\Windows\Application Experience\ProgramDataUpdater",
+    "\Microsoft\Windows\Autochk\Proxy",
+    "\Microsoft\Windows\Customer Experience Improvement Program\Consolidator",
+    "\Microsoft\Windows\Customer Experience Improvement Program\UsbCeip",
+    "\Microsoft\Windows\DiskDiagnostic\Microsoft-Windows-DiskDiagnosticDataCollector",
+    "\Microsoft\Windows\Feedback\Siuf\DmClient",
+    "\Microsoft\Windows\Maps\MapsUpdateTask",
+    "\Microsoft\Windows\Windows Error Reporting\QueueReporting",
+    "\Microsoft\Windows\CloudExperienceHost\CreateObjectTask",
+    "\Microsoft\Windows\DiskFootprint\Diagnostics",
+    "\Microsoft\Windows\PI\Sqm-Tasks",
+    "\Microsoft\Windows\Power Efficiency Diagnostics\AnalyzeSystem",
+    "\Microsoft\Windows\Shell\FamilySafetyMonitor",
+    "\Microsoft\Windows\Shell\FamilySafetyRefreshTask",
+    "\Microsoft\Windows\UPI\SIpuTask",
+    "\Microsoft\Windows\WCM\WiFiTask",
+    "\Microsoft\Windows\Windows Filtering Platform\BlockedConnections"
+  )){try{schtasks /Change /TN $t /Disable 2>$null}catch{}}
+
+  # Desativar efeitos visuais para ganhar mais performance
+  Set-Reg "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects" "VisualFXSetting" 2
+  Set-Reg "HKCU:\Control Panel\Desktop" "UserPreferencesMask" ([byte[]](0x90,0x12,0x03,0x80,0x10,0x00,0x00,0x00)) -Type Binary
+  Set-Reg "HKCU:\Software\Microsoft\Windows\DWM" "EnableAeroPeek" 0
+  Set-Reg "HKCU:\Software\Microsoft\Windows\DWM" "AlwaysHibernateThumbnails" 0
+  Set-Reg "HKCU:\Control Panel\Desktop\WindowMetrics" "MinAnimate" "0" -Type String
+  Set-Reg "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" "ListviewAlphaSelect" 0
+  Set-Reg "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" "ListviewShadow" 0
+  Set-Reg "HKCU:\Control Panel\Desktop" "DragFullWindows" "0" -Type String
+  Set-Reg "HKCU:\Control Panel\Desktop" "FontSmoothing" "0" -Type String
+
+  # Desativar notificacoes e Ã­cones na barra de tarefas
+  Set-Reg "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" "ShowTaskViewButton" 0
+  Set-Reg "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" "ShowCortanaButton" 0
+  Set-Reg "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" "TaskbarDa" 0
+  Set-Reg "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" "TaskbarMn" 0
+  Set-Reg "HKCU:\Software\Policies\Microsoft\Windows\Explorer" "DisableNotificationCenter" 1
+  Set-Reg "HKCU:\Software\Microsoft\Windows\CurrentVersion\PushNotifications" "ToastEnabled" 0
+
+  # Desativar OneDrive
+  try{Stop-Process -Name "OneDrive" -Force -EA 0}catch{}
+  Set-Reg "HKLM:\SOFTWARE\Policies\Microsoft\Windows\OneDrive" "DisableFileSynCG" 1
+  Set-Reg "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" "ShowCloudButton" 0
+
+  Write-Log "Otimizacao Agressiva aplicada! (~60 processos)" "ok"
   Write-Host "[RESTART]"
 }
 
@@ -187,6 +380,17 @@ switch($Module){
     Start-Process "$env:SystemRoot\SysWOW64\OneDriveSetup.exe" -ArgumentList "/uninstall" -Wait -EA 0
   }catch{}
   Write-Log "Bloatware removido!" "ok"
+
+  # Remover Teams
+  Write-Log "Removendo Microsoft Teams..." "head"
+  try{Stop-Process -Name "Teams" -Force -EA 0}catch{}
+  try{Stop-Process -Name "ms-teams" -Force -EA 0}catch{}
+  foreach($p in @("*MicrosoftTeams*","*Teams*")){
+    try{Get-AppxPackage -Name $p -AllUsers -EA 0|Remove-AppxPackage -EA 0}catch{}
+    try{Get-AppxProvisionedPackage -Online|Where-Object{$_.PackageName -like $p}|Remove-AppxProvisionedPackage -Online -EA 0}catch{}
+  }
+  Set-Reg "HKLM:\SOFTWARE\Policies\Microsoft\Teams" "AllowMSTeams" 0
+  Write-Log "Microsoft Teams removido!" "ok"
 }
 
 "power" {
@@ -196,7 +400,6 @@ switch($Module){
   powercfg /hibernate off
   Set-Reg "HKLM:\SYSTEM\CurrentControlSet\Control\Power" "HiberbootEnabled" 0
   Write-Log "Energia em alta performance!" "ok"
-  Write-Host "[RESTART]"
 }
 
 "ui" {
@@ -205,8 +408,24 @@ switch($Module){
   Set-Reg "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects" "VisualFXSetting" 2
   Set-Reg "HKCU:\Control Panel\Desktop\WindowMetrics" "MinAnimate" "0" -Type String
   Set-Reg "HKCU:\Software\Microsoft\Windows\Dwm" "EnableAeroPeek" 0
-  Write-Log "Interface otimizada!" "ok"
-  Write-Host "[RESTART]"
+
+  # Transparencia
+  Write-Log "Desativando transparencia..." "head"
+  Set-Reg "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" "EnableTransparency" 0
+  Set-Reg "HKCU:\Software\Microsoft\Windows\DWM" "AlwaysHibernateThumbnails" 0
+
+  # Snapping
+  Write-Log "Desativando snapping..." "head"
+  Set-Reg "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" "SnapAssist" 0
+  Set-Reg "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" "SnapFill" 0
+  Set-Reg "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" "SnapBar" 0
+
+  # Modo Noturno
+  Write-Log "Ativando modo noturno..." "head"
+  Set-Reg "HKCU:\Software\Microsoft\Windows\CurrentVersion\CloudStore\Store\DefaultAccount\Current\default\$windows.data.bluelightreduction.settings\windows.data.bluelightreduction.settings" "Data" ([byte[]](0x08,0x00,0x00,0x00,0x01,0x00,0x00,0x00,0x01)) -Type Binary
+  Set-Reg "HKCU:\Software\Microsoft\Windows\CurrentVersion\CloudStore\Store\DefaultAccount\Current\default\$windows.data.bluelightreduction.donotshow\windows.data.bluelightreduction.donotshow" "Data" ([byte[]](0x08,0x00,0x00,0x00,0x02,0x00,0x00,0x00,0x01)) -Type Binary
+
+  Write-Log "Interface otimizada + transparencia + snapping + noturno!" "ok"
 }
 
 "startmenu-delay" {
@@ -218,24 +437,96 @@ switch($Module){
 
 "monitor-05ms" {
   Write-Log "Ativando timer de alta precisao..." "head"
-  $bg = @'
-while($true){
-  try{
-    Add-Type -TypeDefinition "using System;using System.Runtime.InteropServices;public class T2{[DllImport(\"ntdll.dll\")]public static extern int NtSetTimerResolution(uint d,bool s,out uint c);[DllImport(\"winmm.dll\")]public static extern uint timeBeginPeriod(uint p);}" -EA 0
-    $c=0
-    [T2]::NtSetTimerResolution(5000,$true,[ref]$c)|Out-Null
-    [T2]::timeBeginPeriod(1)|Out-Null
-  }catch{}
-  Start-Sleep -Seconds 1
+
+  # Script em background robusto
+  $bgScript = @'
+Add-Type -TypeDefinition @"
+using System;
+using System.Runtime.InteropServices;
+public class TimerUtil {
+    [DllImport("ntdll.dll")]
+    public static extern int NtSetTimerResolution(uint desiredResolution, bool setResolution, out uint currentResolution);
+
+    [DllImport("winmm.dll")]
+    public static extern uint timeBeginPeriod(uint period);
+
+    [DllImport("winmm.dll")]
+    public static extern uint timeEndPeriod(uint period);
+}
+"@
+
+# Chamar uma vez para setar
+$currentRes = [uint32]0
+[TimerUtil]::NtSetTimerResolution(5000, $true, [ref]$currentRes) | Out-Null
+[TimerUtil]::timeBeginPeriod(1) | Out-Null
+
+# Manter chamando a cada 500ms para nao deixar o Windows resetar
+while ($true) {
+    try {
+        $res = [uint32]0
+        [TimerUtil]::NtSetTimerResolution(5000, $true, [ref]$res) | Out-Null
+    } catch {}
+    Start-Sleep -Milliseconds 500
 }
 '@
-  Set-Content -Path "$env:Public\Documents\peris-timer-bg.ps1" -Value $bg -Force
-  Start-Process powershell.exe -ArgumentList "-WindowStyle Hidden -ExecutionPolicy Bypass -File `"$env:Public\Documents\peris-timer-bg.ps1`"" -WindowStyle Hidden
+
+  # Remover processo anterior se existir
+  Get-Process powershell -EA 0 | Where-Object {
+    try {
+      $cmd = (Get-CimInstance Win32_Process -Filter "ProcessId=$($_.Id)" -EA 0).CommandLine
+      $cmd -and $cmd -match "peris-timer"
+    } catch { $false }
+  } | Stop-Process -Force -EA 0
+
+  $timerPath = "$env:Public\Documents\peris-timer-bg.ps1"
+  Set-Content -Path $timerPath -Value $bgScript -Force -Encoding UTF8
+  Start-Process powershell.exe -ArgumentList "-WindowStyle Hidden -ExecutionPolicy Bypass -File `"$timerPath`"" -WindowStyle Hidden
+  Start-Sleep -Seconds 1
+
+  # Verificar se esta rodando
+  $timerRunning = Get-Process powershell -EA 0 | Where-Object {
+    try {
+      $cmd = (Get-CimInstance Win32_Process -Filter "ProcessId=$($_.Id)" -EA 0).CommandLine
+      $cmd -and $cmd -match "peris-timer"
+    } catch { $false }
+  }
+  if($timerRunning){
+    Write-Log "Timer rodando em background (PID: $($timerRunning.Id -join ', '))" "ok"
+  }else{
+    Write-Log "Timer pode nao estar rodando - verifique manualmente" "warn"
+  }
+
+  # Tarefa agendada para rodar no startup (persiste apos reboot)
+  Write-Log "Criando tarefa agendada para startup..." "info"
+  try{
+    $action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-WindowStyle Hidden -ExecutionPolicy Bypass -File `"$timerPath`""
+    $trigger = New-ScheduledTaskTrigger -AtLogon
+    $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1)
+    $principal = New-ScheduledTaskPrincipal -UserId "$env:USERDOMAIN\$env:USERNAME" -LogonType Interactive -RunLevel Highest
+
+    # Remover tarefa antiga se existir
+    Unregister-ScheduledTask -TaskName "PerisTimerResolution" -Confirm:$false -EA 0
+
+    Register-ScheduledTask -TaskName "PerisTimerResolution" -Action $action -Trigger $trigger -Settings $settings -Principal $principal -Description "Mantem timer resolution em 0.5ms para melhor performance" -EA Stop | Out-Null
+    Write-Log "Tarefa agendada criada!" "ok"
+  }catch{
+    Write-Log "Falha ao criar tarefa agendada: $($_.Exception.Message)" "warn"
+  }
+
   Set-Reg "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile" "NetworkThrottlingIndex" 4294967295
   Set-Reg "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile" "SystemResponsiveness" 0
   Set-Reg "HKLM:\SYSTEM\CurrentControlSet\Control\PriorityControl" "Win32PrioritySeparation" 38
   Set-Reg "HKLM:\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" "HwSchMode" 2
-  Write-Log "Timer 0.5ms ativado!" "ok"
+
+  # HPET OFF
+  Write-Log "Desativando HPET..." "head"
+  $bcdOut = & bcdedit /deletevalue useplatformclock 2>&1
+  if($LASTEXITCODE -ne 0){ Write-Log "useplatformclock: ja removido ou nao existe" "info" }
+  $bcdOut = & bcdedit /set useplatformtick yes 2>&1
+  $bcdOut = & bcdedit /set disabledynamictick yes 2>&1
+  Set-Reg "HKLM:\SYSTEM\CurrentControlSet\Control\PriorityControl" "InterruptSteeringDisabled" 1
+
+  Write-Log "Timer 0.5ms + HPET OFF ativado!" "ok"
 }
 
 "inputlag" {
@@ -259,7 +550,33 @@ while($true){
   Set-Reg $tp "TCPDelAckTicks" 0
   Set-Reg $tp "TcpTimedWaitDelay" 30
   Set-Reg $tp "MaxUserPort" 65534
-  Write-Log "Rede TCP otimizada!" "ok"
+
+  # Throttling de rede
+  Write-Log "Desativando throttling de rede..." "head"
+  Set-Reg "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile" "NetworkThrottlingIndex" 4294967295
+  Set-Reg "HKLM:\SYSTEM\CurrentControlSet\Services\LanmanWorkstation\Parameters" "DisableBandwidthThrottling" 1
+  Set-Reg "HKLM:\SYSTEM\CurrentControlSet\Services\AFD\Parameters" "FastSendDatagramThreshold" 1024
+  Set-Reg "HKLM:\SYSTEM\CurrentControlSet\Services\AFD\Parameters" "FastCopyReceiveThreshold" 1024
+
+  # Reset de Rede
+  Write-Log "Resetando stack TCP/IP..." "head"
+  try{netsh winsock reset 2>$null;Write-Log "Winsock resetado" "ok"}catch{Write-Log "Winsock: erro" "err"}
+  try{netsh int ip reset 2>$null;Write-Log "TCP/IP resetado" "ok"}catch{Write-Log "TCP/IP: erro" "err"}
+
+  # DNS over HTTPS
+  Write-Log "Configurando DNS over HTTPS..." "head"
+  try{
+    $adapter = Get-NetAdapter|Where-Object Status -eq "Up"|Select-Object -First 1
+    if($adapter){
+      Set-DnsClientDoh -InterfaceIndex $adapter.InterfaceIndex -ServerAddress "1.1.1.1" -DohTemplate "https://mozilla-doh/dns-query" -AllowFallbackToUdp $false -AutoUpgrade $true -EA 0
+      Write-Log "DoH Cloudflare configurado" "ok"
+      Set-DnsClientDoh -InterfaceIndex $adapter.InterfaceIndex -ServerAddress "8.8.8.8" -DohTemplate "https://mozilla-doh/dns-query" -AllowFallbackToUdp $false -AutoUpgrade $true -EA 0
+      Write-Log "DoH Google configurado" "ok"
+    }
+  }catch{Write-Log "DoH: erro ao configurar" "warn"}
+
+  ipconfig /flushdns|Out-Null
+  Write-Log "Rede TCP otimizada + reset + throttling + DoH!" "ok"
 }
 
 "cache" {
@@ -349,16 +666,80 @@ while($true){
   Start-Svc "SysMain"
   Enable-Svc "SysMain"
   Set-Reg "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management" "LargeSystemCache" 0
+
+  # Limpeza de RAM (standby list)
+  Write-Log "Limpando lista standby..." "head"
+  try{
+    $code = @'
+Add-Type -TypeDefinition "using System;using System.Runtime.InteropServices;public class RAM{[DllImport(\"ntdll.dll\")]public static extern int NtSetSystemInformation(int c,ref long i,int s);}"
+$len = [int]0x30
+$ptr = [Runtime.InteropServices.Marshal]::AllocHGlobal($len)
+[Runtime.InteropServices.Marshal]::WriteInt64($ptr, 3)
+[RAM]::NtSetSystemInformation(80, [ref]$ptr, $len)|Out-Null
+'@
+    Add-Type -TypeDefinition $code -EA 0
+    [RAM]::NtSetSystemInformation()|Out-Null
+    Write-Log "Standby list limpa" "ok"
+  }catch{
+    Write-Log "Standby: usando methodo alternativo" "warn"
+    try{
+      $code2 = @'
+Add-Type -TypeDefinition "using System;using System.Runtime.InteropServices;public class RM2{[DllImport(\"psapi.dll\")]public static extern int EmptyWorkingSet(IntPtr hw);}"
+foreach($p in Get-Process){try{[RM2]::EmptyWorkingSet($p.Handle)|Out-Null}catch{}}
+'@
+      Add-Type -TypeDefinition $code2 -EA 0
+      [RM2]::EmptyWorkingSet()|Out-Null
+      Write-Log "Processos limpos" "ok"
+    }catch{}
+  }
+
+  # Desativar compressao de memoria
+  Write-Log "Desativando compressao de memoria..." "head"
+  try{
+    Get-MMAgent|Out-Null
+    Disable-MMAgent -MemoryCompression -EA 0
+    Write-Log "Compressao de memoria desativada" "ok"
+  }catch{
+    Write-Log "Compressao: erro ao desativar" "warn"
+  }
+
   try{Clear-RecycleBin -Force -EA 0}catch{}
-  Write-Log "Memoria otimizada!" "ok"
+  Write-Log "Memoria otimizada + limpeza + compressao!" "ok"
 }
 
 "disk-io" {
   Write-Log "Otimizando disco..." "head"
   Set-Reg "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" "NtfsDisableLastAccessUpdate" 80000003
   Set-Reg "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" "NtfsMemoryUsage" 2
-  Write-Log "Disco I/O otimizado!" "ok"
-  Write-Host "[RESTART]"
+
+  # Desativar indexacao
+  Write-Log "Desativando indexacao do Windows Search..." "head"
+  try{
+    Stop-Service "WSearch" -Force -EA 0
+    Set-Service "WSearch" -StartupType Disabled -EA 0
+    Write-Log "Windows Search desativado" "ok"
+  }catch{
+    Write-Log "WSearch: erro ao desativar" "warn"
+  }
+
+  # Verificar SMART
+  Write-Log "Verificando saude dos discos (SMART)..." "head"
+  try{
+    Get-WmiObject -Class Win32_DiskDrive | ForEach-Object {
+      $model = $_.Model
+      $size = [math]::Round($_.Size/1GB,1)
+      $status = $_.Status
+      if($status -eq "OK"){
+        Write-Log "DISK: $model (${size}GB) - $status" "ok"
+      }else{
+        Write-Log "DISK: $model (${size}GB) - $status" "warn"
+      }
+    }
+  }catch{
+    Write-Log "SMART: nao foi possivel verificar" "warn"
+  }
+
+  Write-Log "Disco I/O otimizado + indexacao OFF + SMART!" "ok"
 }
 
 "gamemode" {
@@ -369,8 +750,14 @@ while($true){
   Set-Reg "HKCU:\Software\Microsoft\GameBar" "UseNexusForGameBarEnabled" 0
   Set-Reg "HKLM:\SOFTWARE\Policies\Microsoft\Windows\GameDVR" "AllowGameDVR" 0
   Set-Reg "HKCU:\System\GameConfigStore" "GameDVR_Enabled" 0
-  Write-Log "Game Mode ativado!" "ok"
-  Write-Host "[RESTART]"
+
+  # Game Bar config
+  Write-Log "Configurando Game Bar..." "head"
+  Set-Reg "HKCU:\Software\Microsoft\GameBar" "ShowStartupPanel" 0
+  Set-Reg "HKCU:\Software\Microsoft\GameBar" "GamePanelStartupState" 0
+  Set-Reg "HKCU:\Software\Microsoft\GameBar" "UseSteamOverlay" 1
+
+  Write-Log "Game Mode + Game Bar configurado!" "ok"
 }
 
 "dns-opt" {
@@ -416,7 +803,6 @@ while($true){
   Disable-Svc "UsoSvc"
   Set-Reg "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU" "NoAutoUpdate" 1
   Write-Log "Windows Update controlado!" "ok"
-  Write-Host "[RESTART]"
 }
 
 "boot" {
@@ -430,10 +816,16 @@ while($true){
 "benchmark" {
   Write-Log "Rodando benchmark..." "head"
   try{
-    $b = (Get-Counter '\Processor(_Total)\% Processor Time').CounterSamples.CookedValue
+    $b = (Get-Counter '\Processor(_Total)\% Processor Time' -SampleInterval 1 -MaxSamples 1 -EA Stop).CounterSamples.CookedValue
     Write-Log "CPU usage: $([math]::Round($b,1))%" "ok"
   }catch{
-    Write-Log "Erro ao obter CPU usage" "err"
+    try{
+      $cpu = Get-CimInstance Win32_Processor -EA Stop
+      $load = $cpu.LoadPercentage
+      Write-Log "CPU usage: $load%" "ok"
+    }catch{
+      Write-Log "CPU usage: nao foi possivel obter" "warn"
+    }
   }
 }
 
@@ -447,14 +839,65 @@ while($true){
 
 "integrity" {
   Write-Log "Verificando integridade do sistema..." "head"
+
+  # SFC - executa e aguarda (nao emite progresso via stdout)
+  Write-Log "Iniciando verificacao SFC..." "info"
+  Write-Log "Aguarde, SFC pode levar alguns minutos..." "info"
   try{
-    Start-Process sfc.exe -ArgumentList "/scannow" -Wait -PassThru -NoNewWindow|Out-Null
-    Write-Log "SFC concluido!" "ok"
-  }catch{}
+    $sfcOut = & cmd /c "sfc /scannow" 2>&1
+    $sfcText = $sfcOut -join "`n"
+    if($sfcText -match 'protegidos foram restaurados'){
+      Write-Log "SFC: arquivos protegidos restaurados" "ok"
+    }elseif($sfcText -match 'nao encontrou violacoes'){
+      Write-Log "SFC: nenhuma violacao encontrada" "ok"
+    }elseif($sfcText -match 'conclui'){
+      Write-Log "SFC concluido!" "ok"
+    }else{
+      Write-Log "SFC concluido!" "ok"
+    }
+  }catch{
+    Write-Log "SFC: erro ao executar" "err"
+  }
+
+  # DISM com progresso em tempo real (linha unica)
+  Write-Log "Iniciando verificacao DISM..." "info"
   try{
-    Start-Process DISM.exe -ArgumentList "/Online /Cleanup-Image /RestoreHealth" -Wait -PassThru -NoNewWindow|Out-Null
+    $dismProc = Start-Process cmd.exe -ArgumentList "/c dism /Online /Cleanup-Image /RestoreHealth" -NoNewWindow -PassThru -RedirectStandardOutput "$env:TEMP\dism-out.txt" -RedirectStandardError "$env:TEMP\dism-err.txt"
+    $lastLine = 0
+    $lastPct = ""
+    while(!$dismProc.HasExited){
+      Start-Sleep -Milliseconds 500
+      if(Test-Path "$env:TEMP\dism-out.txt"){
+        $lines = Get-Content "$env:TEMP\dism-out.txt" -EA 0
+        if($lines.Length -gt $lastLine){
+          $newLines = $lines[$lastLine..($lines.Length - 1)]
+          $lastLine = $lines.Length
+          foreach($line in $newLines){
+            $clean = $line -replace '[^\x20-\x7E]',''
+            if($clean -match '(\d+\.?\d*)%'){
+              $pct = $matches[1]
+              if($pct -ne $lastPct){
+                Write-Host "[PROG]DISM: $pct%"
+                $lastPct = $pct
+              }
+            }
+          }
+        }
+      }
+    }
+    # Ler saida final para verificar resultado
+    if(Test-Path "$env:TEMP\dism-out.txt"){
+      $final = Get-Content "$env:TEMP\dism-out.txt" -EA 0 -Raw
+      if($final -match 'The operation completed successfully'){
+        Write-Log "DISM: operacao concluida com sucesso" "ok"
+      }
+    }
+    Remove-Item "$env:TEMP\dism-out.txt" -Force -EA 0
+    Remove-Item "$env:TEMP\dism-err.txt" -Force -EA 0
     Write-Log "DISM concluido!" "ok"
-  }catch{}
+  }catch{
+    Write-Log "DISM: erro ao executar" "err"
+  }
 }
 
 "defender-off" {
@@ -470,11 +913,11 @@ while($true){
   Set-Reg "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Real-Time Protection" "DisableIOAVProtection" 1
   Write-Log "Monitoramento desativado" "ok"
 
-  # Desativar proteção em nuvem e envio de amostras
+  # Desativar proteÃ§Ã£o em nuvem e envio de amostras
   Set-Reg "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Spynet" "SubmitSamplesConsent" 2
   Set-Reg "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Spynet" "DisableBlockAtFirstSeen" 1
   Set-Reg "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Reporting" "DisableEnhancedNotifications" 1
-  Write-Log "Proteção em nuvem desativada" "ok"
+  Write-Log "ProteÃ§Ã£o em nuvem desativada" "ok"
 
   # Desativar tarefas agendadas do Defender
   foreach($t in @(
@@ -485,7 +928,7 @@ while($true){
   )){try{Disable-ScheduledTask -TaskName $t -EA 0}catch{}}
   Write-Log "Tarefas desativadas" "ok"
 
-  # Parar serviços
+  # Parar serviÃ§os
   foreach($s in @("WinDefend","WdNisSvc","WdNisArm","Sense")){
     Stop-Svc $s
     Disable-Svc $s

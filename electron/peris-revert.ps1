@@ -108,7 +108,7 @@ foreach($mod in $Modules){
   }
 
   "desativar-apostado" {
-    Write-Log "Revertendo Otimizacao Agressiva..." "head"
+    Write-Log "Revertendo Otimizacao Agressiva ULTRA..." "head"
 
     # Reativar todos os servicos desativados
     foreach($s in @(
@@ -118,7 +118,8 @@ foreach($mod in $Modules){
       "WerSvc","seclogon","WpcMonSvc","ScDeviceEnum","CscService","wisvc",
       "DoSvc","TrkWks","WdiServiceHost","WdiSystemHost","SCardSvr","SEMGRSVC",
       "AppXSvc","ClipSVC","InstallService","TokenBroker","wbengine","DsmSvc",
-      "DusmSvc","PhoneSvc","XblAuthManager","XblGameSave","XboxNetApiSvc","XboxGipSvc"
+      "DusmSvc","PhoneSvc","XblAuthManager","XblGameSave","XboxNetApiSvc","XboxGipSvc",
+      "diagsvc","TabletInputService","Spooler","PrintNotify"
     )){Enable-Svc $s}
 
     # Reativar tarefas agendadas
@@ -143,7 +144,43 @@ foreach($mod in $Modules){
       "\Microsoft\Windows\Windows Filtering Platform\BlockedConnections"
     )){try{schtasks /Change /TN $t /Enable 2>$null}catch{}}
 
+    # Restaurar plano de energia Equilibrado
+    powercfg /setactive 381b4222-f694-41f0-9685-ff5bb260df2e 2>$null
+    powercfg /hibernate on
+    Set-Reg "HKLM:\SYSTEM\CurrentControlSet\Control\Power" "HiberbootEnabled" 1
+
+    # Restaurar Game DVR
+    Remove-Reg "HKCU:\System\GameConfigStore" "GameDVR_FSEBehaviorMode"
+    Remove-Reg "HKCU:\System\GameConfigStore" "GameDVR_HonorUserFSEBehaviorMode"
+    Remove-Reg "HKCU:\System\GameConfigStore" "GameDVR_FSEBehavior"
+    Remove-Reg "HKCU:\System\GameConfigStore" "GameDVR_DXGIHonorFSEWindowsCompatible"
+
+    # Restaurar Multimedia/Gaming
+    Remove-Reg "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile" "NetworkThrottlingIndex"
+    Remove-Reg "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile" "SystemResponsiveness"
+    Remove-Reg "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile" "NoLazyMode"
+    Remove-Reg "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile" "LazyModeTimeout"
+    Remove-Reg "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games" "GPU Priority"
+    Remove-Reg "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games" "Priority"
+    Remove-Reg "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games" "Scheduling Category"
+    Remove-Reg "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games" "SFIO Priority"
+    Remove-Reg "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games" "Latency Sensitive"
+    Remove-Reg "HKLM:\SYSTEM\ControlSet001\Control\PriorityControl" "Win32PrioritySeparation"
+
+    # Restaurar Power Throttling
+    Remove-Reg "HKLM:\SYSTEM\CurrentControlSet\Control\Power\PowerThrottling" "PowerThrottlingOff"
+
+    # Restaurar FileSystem
+    Remove-Reg "HKLM:\SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters" "EnableOplocks"
+
+    # Restaurar Timeouts
+    Set-Reg "HKLM:\SYSTEM\CurrentControlSet\Control" "WaitToKillServiceTimeout" "20000" -Type String
+    Set-Reg "HKCU:\Control Panel\Desktop" "WaitToKillAppTimeout" "20000" -Type String
+    Set-Reg "HKCU:\Control Panel\Desktop" "HungAppTimeout" "5000" -Type String
+    Remove-Reg "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" "ShowInfoTip"
+
     # Restaurar efeitos visuais
+    Set-Reg "HKCU:\Control Panel\Desktop" "Animation" "1" -Type String
     Remove-Reg "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects" "VisualFXSetting"
     Remove-Reg "HKCU:\Software\Microsoft\Windows\DWM" "EnableAeroPeek"
     Remove-Reg "HKCU:\Software\Microsoft\Windows\DWM" "AlwaysHibernateThumbnails"
@@ -152,6 +189,9 @@ foreach($mod in $Modules){
     Remove-Reg "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" "ListviewShadow"
     Set-Reg "HKCU:\Control Panel\Desktop" "DragFullWindows" "1" -Type String
     Set-Reg "HKCU:\Control Panel\Desktop" "FontSmoothing" "2" -Type String
+
+    # Restaurar DWM
+    Remove-Reg "HKCU:\Software\Microsoft\Windows\CurrentVersion\DWM" "EnableUserDWM"
 
     # Restaurar notificacoes e icones
     Remove-Reg "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" "ShowTaskViewButton"
@@ -165,7 +205,41 @@ foreach($mod in $Modules){
     Remove-Reg "HKLM:\SOFTWARE\Policies\Microsoft\Windows\OneDrive" "DisableFileSynCG"
     Remove-Reg "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" "ShowCloudButton"
 
-    Write-Log "Otimizacao Agressiva revertida!" "ok"
+    # Restaurar emulador BlueStacks/MSI 5.9
+    $bsProcs = @("HD-Player","HD-Agent","BlueStacks","BstkShell","BstHook","BstService","MSI-Bar","MEmu","Nemu","MuMuPlayer")
+    foreach($proc in $bsProcs){
+      try{
+        $p = Get-Process -Name $proc -EA 0
+        if($p){
+          foreach($pp in $p){
+            $pp.PriorityClass = [System.Diagnostics.ProcessPriorityClass]::Normal
+          }
+        }
+      }catch{}
+    }
+    Remove-Reg "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\HD-Player.exe\PerfOptions" "CpuPriorityClass"
+    Remove-Reg "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\HD-Player.exe\PerfOptions" "GpuPriority"
+    Remove-Reg "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\HD-Player.exe\PerfOptions" "IoPriority"
+    Remove-Reg "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\BlueStacks.exe\PerfOptions" "CpuPriorityClass"
+    Remove-Reg "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\BstShell.exe\PerfOptions" "CpuPriorityClass"
+    Remove-Reg "HKCU:\Software\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "C:\Program Files\BlueStacks_msi5\HD-Player.exe"
+    Remove-Reg "HKCU:\Software\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "C:\Program Files\BlueStacks_msi5\BlueStacks.exe"
+    Remove-Reg "HKCU:\Software\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" "C:\Program Files\BlueStacks_msi5\BstShell.exe"
+
+    # Restaurar NVIDIA
+    try{
+      $gpu = Get-CimInstance Win32_VideoController | Where-Object {$_.PNPDeviceID -like "PCI\VEN_*"}
+      if($gpu){
+        foreach($g in $gpu){
+          $driverKey = (Get-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\Enum\$($g.PNPDeviceID)" -ErrorAction SilentlyContinue).Driver
+          if($driverKey -match "\{"){
+            Remove-Reg "HKLM:\SYSTEM\CurrentControlSet\Control\Class\$driverKey" "DisableDynamicPstate"
+          }
+        }
+      }
+    }catch{}
+
+    Write-Log "Otimizacao Agressiva ULTRA revertida!" "ok"
     Write-Host "[RESTART]"
   }
 

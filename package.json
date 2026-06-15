@@ -27,7 +27,7 @@
   },
   "build": {
     "appId": "com.peris.optimizer",
-    "productName": "PERIS FPS Optimizer",
+    "productName": "Peris Optimizer",
     "directories": {
       "output": "dist-electron"
     },
@@ -36,7 +36,12 @@
       "electron/**/*"
     ],
     "win": {
-      "target": "nsis",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64", "ia32"]
+        }
+      ],
       "icon": "electron/icon.ico",
       "requestedExecutionLevel": "requireAdministrator"
     },

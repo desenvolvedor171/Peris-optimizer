@@ -238,56 +238,25 @@ switch($Module){
 }
 
 "desativar-apostado" {
-  Write-Log "Otimizacao Agressiva - reduzindo para ~60 processos..." "head"
+  Write-Log "Otimizacao Agressiva - modo ULTRA..." "head"
 
-  # Servicos do apostado original
-  foreach($s in @("PcaSvc","DiagTrack","SysMain","PlugPlay","DPS","Sysmon","EventLog","Mpssvc","TapiSrv")){Stop-Svc $s;Disable-Svc $s}
-
-  # Servicos pesados do Windows (nao mexe em Bluetooth ou Win+Shift+S)
+  # ============================================
+  # SERVICOS DESATIVADOS (nao mexe Bluetooth/Win+Shift+S)
+  # ============================================
   foreach($s in @(
-    "WSearch",           # Windows Search Indexer (grande consumidor)
-    "wuauserv",          # Windows Update
-    "UsoSvc",            # Update Orchestrator
-    "BITS",              # Background Intelligent Transfer
-    "SecurityHealthService", # Windows Security Center
-    "SDRSVC",            # Windows Backup
-    "WbioSrvc",          # Biometric Service
-    "RemoteRegistry",    # Remote Registry
-    "RetailDemo",        # Retail Demo
-    "Fax",               # Fax Service
-    "MapsBroker",        # Downloaded Maps
-    "lfsvc",             # Geolocation
-    "SharedAccess",      # Internet Connection Sharing
-    "DsSvc",             # Data Sharing
-    "WerSvc",            # Error Reporting
-    "seclogon",          # Secondary Logon
-    "WpcMonSvc",         # Perceived Performance
-    "ScDeviceEnum",      # Smart Card Device
-    "CscService",        # Offline Files
-    "wisvc",             # Windows Insider
-    "DoSvc",             # Delivery Optimization
-    "TrkWks",            # Distributed Link Tracking
-    "WdiServiceHost",    # Diagnostic Service Host
-    "WdiSystemHost",     # Diagnostic System Host
-    "SCardSvr",          # Smart Card
-    "SEMGRSVC",          # Payments and NFC
-    "SCardSvr",          # Smart Card Daemon
-    "AppXSvc",           # AppX Deployment
-    "ClipSVC",           # Client License
-    "InstallService",    # Store Install
-    "TokenBroker",       # Web Account Manager
-    "wbengine",          # Block Level Backup
-    "DsmSvc",            # Device Setup Manager
-    "DusmSvc",           # Data Usage Monitor
-    "PhoneSvc",          # Phone Service
-    "TapiSrv",           # Telephony (ja desativado)
-    "XblAuthManager",    # Xbox Live Auth
-    "XblGameSave",       # Xbox Live Game Save
-    "XboxNetApiSvc",     # Xbox Live Networking
-    "XboxGipSvc"         # Xbox Accessory Management
+    "PcaSvc","DiagTrack","SysMain","PlugPlay","DPS","Sysmon","EventLog","Mpssvc","TapiSrv",
+    "WSearch","wuauserv","UsoSvc","BITS","SecurityHealthService","SDRSVC","WbioSrvc",
+    "RemoteRegistry","RetailDemo","Fax","MapsBroker","lfsvc","SharedAccess","DsSvc",
+    "WerSvc","seclogon","WpcMonSvc","ScDeviceEnum","CscService","wisvc",
+    "DoSvc","TrkWks","WdiServiceHost","WdiSystemHost","SCardSvr","SEMGRSVC",
+    "AppXSvc","ClipSVC","InstallService","TokenBroker","wbengine","DsmSvc",
+    "DusmSvc","PhoneSvc","XblAuthManager","XblGameSave","XboxNetApiSvc","XboxGipSvc",
+    "diagsvc","TabletInputService","Spooler","PrintNotify"
   )){Stop-Svc $s;Disable-Svc $s}
 
-  # Desativar tarefas agendadas pesadas
+  # ============================================
+  # TAREFAS AGENDADAS DESATIVADAS
+  # ============================================
   foreach($t in @(
     "\Microsoft\Windows\Application Experience\Microsoft Compatibility Appraiser",
     "\Microsoft\Windows\Application Experience\ProgramDataUpdater",
@@ -309,7 +278,106 @@ switch($Module){
     "\Microsoft\Windows\Windows Filtering Platform\BlockedConnections"
   )){try{schtasks /Change /TN $t /Disable 2>$null}catch{}}
 
-  # Desativar efeitos visuais para ganhar mais performance
+  # ============================================
+  # PLANO DE ENERGIA ULTIMATE PERFORMANCE
+  # ============================================
+  Write-Log "Ativando Ultimate Performance..." "head"
+  powercfg -duplicatescheme e9a42b02-d5df-448d-aa00-03f14749eb61 2>$null
+  powercfg /setactive e9a42b02-d5df-448d-aa00-03f14749eb61 2>$null
+  powercfg /hibernate off
+  Set-Reg "HKLM:\SYSTEM\CurrentControlSet\Control\Power" "HiberbootEnabled" 0
+
+  # ============================================
+  # CPU PRIORITY - Game DVR desativado
+  # ============================================
+  Write-Log "Otimizando CPU Priority e Game DVR..." "head"
+  Set-Reg "HKCU:\System\GameConfigStore" "GameDVR_FSEBehaviorMode" 2
+  Set-Reg "HKCU:\System\GameConfigStore" "GameDVR_HonorUserFSEBehaviorMode" 1
+  Set-Reg "HKCU:\System\GameConfigStore" "GameDVR_FSEBehavior" 2
+  Set-Reg "HKCU:\System\GameConfigStore" "GameDVR_DXGIHonorFSEWindowsCompatible" 1
+
+  # ============================================
+  # MULTIMEDIA/GAMING TWEAKS
+  # ============================================
+  Write-Log "Otimizando Multimedia/Gaming..." "head"
+  Set-Reg "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile" "NetworkThrottlingIndex" 10
+  Set-Reg "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile" "SystemResponsiveness" 10
+  Set-Reg "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile" "NoLazyMode" 1
+  Set-Reg "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile" "LazyModeTimeout" 150000
+
+  # Gaming tasks profile
+  Set-Reg "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games" "GPU Priority" 18
+  Set-Reg "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games" "Priority" 6
+  Set-Reg "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games" "Scheduling Category" "High" -Type String
+  Set-Reg "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games" "SFIO Priority" "High" -Type String
+  Set-Reg "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games" "Latency Sensitive" "True" -Type String
+
+  # DisplayPostProcessing (high priority)
+  Set-Reg "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\DisplayPostProcessing" "GPU Priority" 18
+  Set-Reg "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\DisplayPostProcessing" "Priority" 8
+  Set-Reg "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\DisplayPostProcessing" "Scheduling Category" "High" -Type String
+  Set-Reg "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\DisplayPostProcessing" "SFIO Priority" "High" -Type String
+  Set-Reg "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\DisplayPostProcessing" "Latency Sensitive" "True" -Type String
+
+  # Win32PrioritySeparation (process scheduling)
+  Set-Reg "HKLM:\SYSTEM\ControlSet001\Control\PriorityControl" "Win32PrioritySeparation" 38
+
+  # ============================================
+  # POWER THROTTLING OFF
+  # ============================================
+  Write-Log "Desativando Power Throttling..." "head"
+  Set-Reg "HKLM:\SYSTEM\CurrentControlSet\Control\Power\PowerThrottling" "PowerThrottlingOff" 1
+
+  # ============================================
+  # FILESYSTEM OPTIMIZATION
+  # ============================================
+  Write-Log "Otimizando filesystem..." "head"
+  Set-Reg "HKLM:\SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters" "EnableOplocks" 1
+
+  # ============================================
+  # KILL NOT RESPONDING + CLEAN RAM
+  # ============================================
+  Write-Log "Limpando RAM e processos travados..." "head"
+  try{
+    Get-Process | Where-Object {$_.Responding -eq $false} | Stop-Process -Force -EA 0
+  }catch{}
+
+  # ============================================
+  # LIMPAR PREFETCH E TEMP
+  # ============================================
+  Write-Log "Limpando Prefetch e Temp..." "head"
+  Remove-Item "$env:SystemRoot\Prefetch\*" -Force -EA 0
+  Remove-Item "$env:SystemRoot\Temp\*" -Recurse -Force -EA 0
+  Remove-Item "$env:TEMP\*" -Recurse -Force -EA 0
+
+  # ============================================
+  # LIMPAR EVENT LOGS
+  # ============================================
+  Write-Log "Limpando Event Logs..." "head"
+  try{
+    wevtutil el | ForEach-Object { wevtutil cl $_ 2>$null }
+  }catch{}
+
+  # ============================================
+  # DNS FLUSH
+  # ============================================
+  Write-Log "Limpando DNS Cache..." "head"
+  ipconfig /flushdns 2>$null
+
+  # ============================================
+  # TIMEOUTS REDUZIDOS (sistema responde mais rapido)
+  # ============================================
+  Write-Log "Reduzindo timeouts do sistema..." "head"
+  Set-Reg "HKLM:\SYSTEM\CurrentControlSet\Control" "WaitToKillServiceTimeout" "2000" -Type String
+  Set-Reg "HKCU:\Control Panel\Desktop" "WaitToKillAppTimeout" "2000" -Type String
+  Set-Reg "HKCU:\Control Panel\Desktop" "HungAppTimeout" "1000" -Type String
+  Set-Reg "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" "ShowInfoTip" 0
+
+  # ============================================
+  # EFEITOS VISUAIS DESATIVADOS
+  # ============================================
+  Write-Log "Desativando animacoes e efeitos visuais..." "head"
+  Set-Reg "HKCU:\Control Panel\Desktop" "Animation" "0" -Type String
   Set-Reg "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects" "VisualFXSetting" 2
   Set-Reg "HKCU:\Control Panel\Desktop" "UserPreferencesMask" ([byte[]](0x90,0x12,0x03,0x80,0x10,0x00,0x00,0x00)) -Type Binary
   Set-Reg "HKCU:\Software\Microsoft\Windows\DWM" "EnableAeroPeek" 0
@@ -320,7 +388,15 @@ switch($Module){
   Set-Reg "HKCU:\Control Panel\Desktop" "DragFullWindows" "0" -Type String
   Set-Reg "HKCU:\Control Panel\Desktop" "FontSmoothing" "0" -Type String
 
-  # Desativar notificacoes e Ã­cones na barra de tarefas
+  # ============================================
+  # DWM / REFRESH RATE REDUCTION OFF
+  # ============================================
+  Write-Log "Desativando DWM refresh rate reduction..." "head"
+  Set-Reg "HKCU:\Software\Microsoft\Windows\CurrentVersion\DWM" "EnableUserDWM" 0
+
+  # ============================================
+  # NOTIFICACOES E ICONES DA BARRA
+  # ============================================
   Set-Reg "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" "ShowTaskViewButton" 0
   Set-Reg "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" "ShowCortanaButton" 0
   Set-Reg "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" "TaskbarDa" 0
@@ -328,12 +404,70 @@ switch($Module){
   Set-Reg "HKCU:\Software\Policies\Microsoft\Windows\Explorer" "DisableNotificationCenter" 1
   Set-Reg "HKCU:\Software\Microsoft\Windows\CurrentVersion\PushNotifications" "ToastEnabled" 0
 
-  # Desativar OneDrive
+  # ============================================
+  # ONEDRIVE DESATIVADO
+  # ============================================
   try{Stop-Process -Name "OneDrive" -Force -EA 0}catch{}
   Set-Reg "HKLM:\SOFTWARE\Policies\Microsoft\Windows\OneDrive" "DisableFileSynCG" 1
   Set-Reg "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" "ShowCloudButton" 0
 
-  Write-Log "Otimizacao Agressiva aplicada! (~60 processos)" "ok"
+  # ============================================
+  # EMULADOR BLUESTACKS/MSI 5.9 OTIMIZATIONS
+  # ============================================
+  Write-Log "Otimizando emulador BlueStacks/MSI 5.9..." "head"
+
+  # Processos do emulador
+  $bsProcs = @("HD-Player","HD-Agent","BlueStacks","BstkShell","BstHook","BstService","MSI-Bar","MEmu","Nemu","MuMuPlayer")
+  
+  # CPU Priority HIGH para emulador
+  foreach($proc in $bsProcs){
+    try{
+      $p = Get-Process -Name $proc -EA 0
+      if($p){
+        foreach($pp in $p){
+          $pp.PriorityClass = [System.Diagnostics.ProcessPriorityClass]::High
+          Write-Log "Emulador: CPU Priority HIGH para $($pp.Name)" "ok"
+        }
+      }
+    }catch{}
+  }
+
+  # Registry: Fullscreen Optimizations OFF para emulador
+  $bsPaths = @(
+    "C:\Program Files\BlueStacks_msi5\HD-Player.exe",
+    "C:\Program Files\BlueStacks_msi5\BlueStacks.exe",
+    "C:\Program Files\BlueStacks_msi5\BstShell.exe"
+  )
+  foreach($exe in $bsPaths){
+    if(Test-Path $exe){
+      Set-Reg "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\$(Split-Path $exe -Leaf)\PerfOptions" "CpuPriorityClass" 3
+      Set-Reg "HKCU:\Software\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers" $exe "~ RUNAS ADMIN DISABLEWINDFW FROPT" -Type String
+      Write-Log "Emulador: Fullscreen Opt OFF + High Priority para $(Split-Path $exe -Leaf)" "ok"
+    }
+  }
+
+  # Registry: GPU Priority HIGH para emulador
+  Set-Reg "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\HD-Player.exe\PerfOptions" "GpuPriority" 8
+  Set-Reg "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\HD-Player.exe\PerfOptions" "IoPriority" 3
+
+  # ============================================
+  # NVIDIA OPTIMIZATIONS (desabilita Dynamic Pstate)
+  # ============================================
+  Write-Log "Otimizando NVIDIA GPU..." "head"
+  try{
+    $gpu = Get-CimInstance Win32_VideoController | Where-Object {$_.PNPDeviceID -like "PCI\VEN_*"}
+    if($gpu){
+      foreach($g in $gpu){
+        $driverKey = (Get-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\Enum\$($g.PNPDeviceID)" -ErrorAction SilentlyContinue).Driver
+        if($driverKey -match "\{"){
+          Set-Reg "HKLM:\SYSTEM\CurrentControlSet\Control\Class\$driverKey" "DisableDynamicPstate" 1
+          Write-Log "NVIDIA: DisableDynamicPstate=1 ($($g.Name))" "ok"
+        }
+      }
+    }
+  }catch{Write-Log "NVIDIA: GPU nao detectada ou erro" "warn"}
+
+  Write-Log "Otimizacao Agressiva ULTRA aplicada!" "ok"
   Write-Host "[RESTART]"
 }
 

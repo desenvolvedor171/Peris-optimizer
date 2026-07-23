@@ -244,7 +244,7 @@ switch($Module){
   # SERVICOS DESATIVADOS (nao mexe Bluetooth/Win+Shift+S)
   # ============================================
   foreach($s in @(
-    "PcaSvc","DiagTrack","SysMain","PlugPlay","DPS","Sysmon","EventLog","Mpssvc","TapiSrv",
+    "PcaSvc","DiagTrack","SysMain","DPS","Sysmon","EventLog","Mpssvc","TapiSrv",
     "WSearch","wuauserv","UsoSvc","BITS","SecurityHealthService","SDRSVC","WbioSrvc",
     "RemoteRegistry","RetailDemo","Fax","MapsBroker","lfsvc","SharedAccess","DsSvc",
     "WerSvc","seclogon","WpcMonSvc","ScDeviceEnum","CscService","wisvc",

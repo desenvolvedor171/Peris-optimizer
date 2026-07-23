@@ -249,7 +249,7 @@ switch($Module){
     "RemoteRegistry","RetailDemo","Fax","MapsBroker","lfsvc","SharedAccess","DsSvc",
     "WerSvc","seclogon","WpcMonSvc","ScDeviceEnum","CscService","wisvc",
     "DoSvc","TrkWks","WdiServiceHost","WdiSystemHost","SCardSvr","SEMGRSVC",
-    "AppXSvc","ClipSVC","InstallService","TokenBroker","wbengine","DsmSvc",
+    "wbengine","DsmSvc",
     "DusmSvc","PhoneSvc","XblAuthManager","XblGameSave","XboxNetApiSvc","XboxGipSvc",
     "diagsvc","TabletInputService","Spooler","PrintNotify"
   )){Stop-Svc $s;Disable-Svc $s}

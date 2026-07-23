@@ -13,7 +13,7 @@ const SCRIPTS = path.join(DATA, "scripts");
 function ensureScripts() {
   if (!fs.existsSync(SCRIPTS)) fs.mkdirSync(SCRIPTS, { recursive: true });
   const src = __dirname;
-  for (const f of ["sys-info.ps1", "hw-status.ps1", "peris-tweaks.ps1"]) {
+  for (const f of ["sys-info.ps1", "hw-status.ps1", "peris-tweaks.ps1", "peris-revert.ps1"]) {
     const srcPath = path.join(src, f);
     const dstPath = path.join(SCRIPTS, f);
     if (fs.existsSync(srcPath)) fs.copyFileSync(srcPath, dstPath);
@@ -109,6 +109,36 @@ ipcMain.on("saveCompleted", (_, ids) => wj(COMP, ids));
 ipcMain.handle("getTweaksState", () => rj(TWK, {}));
 ipcMain.on("saveTweaksState", (_, s) => wj(TWK, s));
 ipcMain.handle("runModule", (_, id, ch) => runPS(id, ch));
+ipcMain.handle("revertModules", async (_, modules, ch) => {
+  return new Promise((resolve, reject) => {
+    const psScript = path.join(SCRIPTS, "peris-revert.ps1");
+    const args = ["-ExecutionPolicy", "Bypass", "-NoProfile", "-File", psScript, "-Modules"];
+    modules.forEach(m => args.push(m));
+    const p = spawn("powershell.exe", args, { shell: true });
+    const listener = (d) => {
+      const raw = d.toString("utf-8");
+      const clean = raw.replace(/\x1b\[[0-9;]*m/g, "");
+      clean.split("\n").filter((l) => l.trim()).forEach((line) => {
+        let level = "info";
+        let text = line.trim();
+        if (text === "[RESTART]") return;
+        if (text.startsWith("[HEAD]")) { level = "head"; text = text.replace("[HEAD]", "").trim(); }
+        else if (text.startsWith("[OK]")) { level = "ok"; text = text.replace("[OK]", "").trim(); }
+        else if (text.startsWith("[WARN]")) { level = "warn"; text = text.replace("[WARN]", "").trim(); }
+        else if (text.startsWith("[ERR]")) { level = "err"; text = text.replace("[ERR]", "").trim(); }
+        if (text && mainWindow) mainWindow.webContents.send(ch, { level, text, ts: Date.now() });
+      });
+    };
+    const errListener = (d) => {
+      const text = d.toString("utf-8").trim().replace(/\x1b\[[0-9;]*m/g, "");
+      if (text && mainWindow) mainWindow.webContents.send(ch, { level: "err", text, ts: Date.now() });
+    };
+    p.stdout.on("data", listener);
+    p.stderr.on("data", errListener);
+    p.on("close", (c) => { p.stdout.off("data", listener); p.stderr.off("data", errListener); c === 0 ? resolve({ ok: true }) : reject(new Error(`exit ${c}`)); });
+    p.on("error", (e) => { p.stdout.off("data", listener); p.stderr.off("data", errListener); reject(e); });
+  });
+});
 ipcMain.on("closeApp", () => { if (mainWindow) mainWindow.close(); });
 ipcMain.on("minimizeApp", () => { if (mainWindow) mainWindow.minimize(); });
 ipcMain.on("restartPC", () => {

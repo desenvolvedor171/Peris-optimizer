@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+﻿import { useState, useEffect, useCallback, useRef } from "react";
 import type { SystemInfo, HWStatus, LogEntry } from "./lib/peris-bridge";
 
 const defaultSys: SystemInfo = {
@@ -48,29 +48,29 @@ const icons: Record<string, string> = {
 };
 
 const modules = [
-  { id: "backup", name: "Ponto de RestauraÃ§Ã£o", desc: "Cria um restore point do sistema antes de aplicar qualquer tweak", color: "#3b82f6" },
+  { id: "backup", name: "Ponto de Restauração", desc: "Cria um restore point do sistema antes de aplicar qualquer tweak", color: "#3b82f6" },
   { id: "telemetria", name: "Telemetria", desc: "Desativa rastreamento Microsoft, Cortana, Widgets, Copilot e Teams", color: "#ef4444" },
-  { id: "bloatware", name: "Bloatware", desc: "Remove Microsoft Edge, OneDrive, Teams e apps prÃ©-instalados do Windows", color: "#f97316" },
-  { id: "power", name: "Plano de Energia", desc: "Ativa plano de alta performance e desativa hibernaÃ§Ã£o", color: "#eab308" },
-  { id: "ui", name: "Interface", desc: "Desativa animaÃ§Ãµes, transparÃªncia, snapping e ativa modo noturno", color: "#ec4899" },
+  { id: "bloatware", name: "Bloatware", desc: "Remove Microsoft Edge, OneDrive, Teams e apps pré-instalados do Windows", color: "#f97316" },
+  { id: "power", name: "Plano de Energia", desc: "Ativa plano de alta performance e desativa hibernação", color: "#eab308" },
+  { id: "ui", name: "Interface", desc: "Desativa animações, transparência, snapping e ativa modo noturno", color: "#ec4899" },
   { id: "startmenu-delay", name: "Menu Iniciar", desc: "Remove delay ao abrir menus e o menu iniciar", color: "#14b8a6" },
-  { id: "monitor-05ms", name: "Timer 0.5ms", desc: "Ativa timer de alta precisÃ£o global e desativa HPET", color: "#06b6d4" },
+  { id: "monitor-05ms", name: "Timer 0.5ms", desc: "Ativa timer de alta precisão global e desativa HPET", color: "#06b6d4" },
   { id: "inputlag", name: "Input Lag", desc: "Otimiza prioridade de GPU, mouse e teclado para menor atraso", color: "#f43f5e" },
   { id: "ping", name: "Rede / TCP", desc: "Otimiza TCP/IP, reseta rede, configura DoH e desativa throttling", color: "#10b981" },
   { id: "cache", name: "Limpar Cache", desc: "Limpa temp, prefetch, DNS, crash dumps, Windows Update e lixeira", color: "#8b5cf6" },
-  { id: "gpu-opt", name: "GPU", desc: "Ativa modo de performance mÃ¡xima na placa de vÃ­deo", color: "#d946ef" },
-  { id: "memory", name: "MemÃ³ria RAM", desc: "Otimiza memÃ³ria, limpa standby e desativa compressÃ£o", color: "#6366f1" },
-  { id: "disk-io", name: "Disco I/O", desc: "Otimiza TRIM, NTFS, verifica SMART e desativa indexaÃ§Ã£o", color: "#64748b" },
+  { id: "gpu-opt", name: "GPU", desc: "Ativa modo de performance máxima na placa de vídeo", color: "#d946ef" },
+  { id: "memory", name: "Memória RAM", desc: "Otimiza memória, limpa standby e desativa compressão", color: "#6366f1" },
+  { id: "disk-io", name: "Disco I/O", desc: "Otimiza TRIM, NTFS, verifica SMART e desativa indexação", color: "#64748b" },
   { id: "gamemode", name: "Game Mode", desc: "Ativa modo jogo e configura Game Bar do Windows", color: "#84cc16" },
-  { id: "dns-opt", name: "DNS RÃ¡pido", desc: "Configura DNS Cloudflare + Google para menor latÃªncia", color: "#0ea5e9" },
+  { id: "dns-opt", name: "DNS Rápido", desc: "Configura DNS Cloudflare + Google para menor latência", color: "#0ea5e9" },
   { id: "scheduled", name: "Tarefas Agendadas", desc: "Desativa tarefas pesadas do Windows que consomem recursos", color: "#f59e0b" },
-  { id: "spooler", name: "Spooler", desc: "Desativa serviÃ§o de impressÃ£o (libera recursos)", color: "#78716c" },
-  { id: "winupdate", name: "Windows Update", desc: "Para e desativa atualizaÃ§Ãµes automÃ¡ticas do Windows", color: "#06b6d4" },
-  { id: "boot", name: "Boot RÃ¡pido", desc: "Acelera inicializaÃ§Ã£o desativando timeout e log de boot", color: "#ef4444" },
+  { id: "spooler", name: "Spooler", desc: "Desativa serviço de impressão (libera recursos)", color: "#78716c" },
+  { id: "winupdate", name: "Windows Update", desc: "Para e desativa atualizações automáticas do Windows", color: "#06b6d4" },
+  { id: "boot", name: "Boot Rápido", desc: "Acelera inicialização desativando timeout e log de boot", color: "#ef4444" },
   { id: "integrity", name: "Integridade", desc: "Executa SFC + DISM para verificar e corrigir arquivos do sistema", color: "#10b981" },
   { id: "defender-off", name: "Desativar Defender", desc: "Desativa Windows Defender completo incluindo Tamper Protection", color: "#ef4444" },
-  { id: "gaming-services", name: "ServiÃ§os para apostado", desc: "Ativa serviÃ§os pra nÃ£o tomar W.O", color: "#a855f7" },
-  { id: "desativar-apostado", name: "OtimizaÃ§Ã£o Agressiva", desc: "Desativa serviÃ§os pesados para mÃ¡ximo desempenho (pode causar W.O.)", color: "#f43f5e" },
+  { id: "gaming-services", name: "Serviços para apostado", desc: "Ativa serviços pra não tomar W.O", color: "#a855f7" },
+  { id: "desativar-apostado", name: "Otimização Agressiva", desc: "Desativa serviços pesados para máximo desempenho (pode causar W.O.)", color: "#f43f5e" },
 ];
 
 type Tab = "sistema" | "tweaks";
@@ -127,17 +127,17 @@ function App() {
     const mod = modules.find(m => m.id === id);
     if (id === "desativar-apostado") {
       const confirmed = window.confirm(
-        "Se vc joga apostado nÃ£o recomendo ativar, pois desliga os processos necessÃ¡rio e causa W.O, mas aumenta o desempenho e melhora a sensibilidade.\n\nDeseja continuar?"
+        "Se vc joga apostado não recomendo ativar, pois desliga os processos necessário e causa W.O, mas aumenta o desempenho e melhora a sensibilidade.\n\nDeseja continuar?"
       );
       if (!confirmed) return;
     } else if (id === "bloatware") {
       const confirmed = window.confirm(
-        "SerÃ£o removidos do sistema:\n\n" +
-        "â€¢ Microsoft Edge (remoÃ§Ã£o completa)\n" +
+        "Serão removidos do sistema:\n\n" +
+        "â€¢ Microsoft Edge (remoção completa)\n" +
         "â€¢ Microsoft 3D Builder\n" +
         "â€¢ Bing Weather / News / Finance / Sports\n" +
         "â€¢ Get Help / Get Started\n" +
-        "â€¢ SolitÃ¡rio Collection\n" +
+        "â€¢ Solitário Collection\n" +
         "â€¢ People / Skype\n" +
         "â€¢ Office Hub / OneConnect\n" +
         "â€¢ Windows Feedback Hub\n" +
@@ -153,15 +153,15 @@ function App() {
       if (!confirmed) return;
     } else if (id === "defender-off") {
       const confirmed = window.confirm(
-        "ATENÃ‡ÃƒO: Isso irÃ¡ desativar completamente o Windows Defender!\n\n" +
-        "Seu sistema ficarÃ¡ sem proteÃ§Ã£o contra vÃ­rus e malware.\n" +
-        "Recomendo instalar um antivÃ­rus alternativo antes de continuar.\n\n" +
+        "ATENÃ‡ÃƒO: Isso irá desativar completamente o Windows Defender!\n\n" +
+        "Seu sistema ficará sem proteção contra vírus e malware.\n" +
+        "Recomendo instalar um antivírus alternativo antes de continuar.\n\n" +
         "Deseja continuar?"
       );
       if (!confirmed) return;
     } else if (completed.has(id)) {
       const confirmed = window.confirm(
-        `"${mod?.name || id}" jÃ¡ foi aplicado!\n\nDeseja executar novamente?`
+        `"${mod?.name || id}" já foi aplicado!\n\nDeseja executar novamente?`
       );
       if (!confirmed) return;
     }
@@ -186,7 +186,7 @@ function App() {
       });
       if (result.restart) setNeedsRestart(true);
     } catch {
-      setLogs(prev => [...prev, { level: "err", text: "Erro ao executar mÃ³dulo", ts: Date.now() }]);
+      setLogs(prev => [...prev, { level: "err", text: "Erro ao executar módulo", ts: Date.now() }]);
     }
     setRunning(null);
   }, [running, completed]);
@@ -270,20 +270,20 @@ function App() {
                 ]} />
                 <SysBlock title="Processador" items={[
                   { label: "CPU", value: sys.cpu },
-                  { label: "NÃºcleos / Threads", value: `${sys.cpuCores} / ${sys.cpuThreads}` },
+                  { label: "Núcleos / Threads", value: `${sys.cpuCores} / ${sys.cpuThreads}` },
                   { label: "Socket", value: sys.cpuSocket },
-                  { label: "FrequÃªncia", value: sys.cpuTdp },
+                  { label: "Frequência", value: sys.cpuTdp },
                 ]} />
-                <SysBlock title="Placa de VÃ­deo" items={[
+                <SysBlock title="Placa de Vídeo" items={[
                   { label: "GPU", value: sys.gpu },
                   { label: "Driver", value: sys.gpuDriver },
                 ]} />
                 <SysBlock title="Monitor" items={[
                   { label: "Monitor", value: sys.monitor },
-                  { label: "ResoluÃ§Ã£o", value: sys.monitorRes },
-                  { label: "Taxa de AtualizaÃ§Ã£o", value: sys.monitorHz },
+                  { label: "Resolução", value: sys.monitorRes },
+                  { label: "Taxa de Atualização", value: sys.monitorHz },
                 ]} />
-                <SysBlock title="MemÃ³ria RAM" items={[
+                <SysBlock title="Memória RAM" items={[
                   { label: "Total", value: sys.ramTotal },
                 ]} />
                 <div className="bg-[#12121c] border border-[#1e1e2e] rounded-xl p-4 hover:border-neon/20 transition-colors duration-300">
@@ -313,7 +313,7 @@ function App() {
                     <div className="text-zinc-500 text-sm">{sys.storage}</div>
                   )}
                 </div>
-                <SysBlock title="Placa-MÃ£e" items={[
+                <SysBlock title="Placa-Mãe" items={[
                   { label: "Modelo", value: sys.mbModel },
                   { label: "Fabricante", value: sys.manufacturer },
                   { label: "BIOS", value: sys.bios },
@@ -326,13 +326,13 @@ function App() {
             <div className="flex gap-4 pt-2 h-full">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between mb-3">
-                  <p className="text-zinc-500 text-xs">{completed.size}/{modules.length} mÃ³dulos aplicados</p>
+                  <p className="text-zinc-500 text-xs">{completed.size}/{modules.length} módulos aplicados</p>
                   <div className="flex items-center gap-2">
                     {completed.size > 0 && (
                       <button onClick={async () => {
                         const modulesToRevert = [...completed];
                         const confirmed = window.confirm(
-                          `SerÃ£o desfeitos ${modulesToRevert.length} mÃ³dulos aplicados:\n\n${modulesToRevert.map(id => modules.find(m => m.id === id)?.name || id).join(", ")}\n\nDeseja continuar?`
+                          `Serão desfeitos ${modulesToRevert.length} módulos aplicados:\n\n${modulesToRevert.map(id => modules.find(m => m.id === id)?.name || id).join(", ")}\n\nDeseja continuar?`
                         );
                         if (!confirmed) return;
                         setRunning("revert");
@@ -344,7 +344,7 @@ function App() {
                           window.electronAPI.saveCompleted([]);
                           setNeedsRestart(!!result.restart);
                         } catch {
-                          setLogs(prev => [...prev, { level: "err", text: "Erro ao desfazer mÃ³dulos", ts: Date.now() }]);
+                          setLogs(prev => [...prev, { level: "err", text: "Erro ao desfazer módulos", ts: Date.now() }]);
                         }
                         setRunning(null);
                       }}
@@ -356,7 +356,7 @@ function App() {
                     <button onClick={async () => {
                       const excluded = ["desativar-apostado", "gaming-services", "defender-off", "integrity"];
                       let pending = modules.filter(m => !completed.has(m.id) && !excluded.includes(m.id));
-                      if (pending.length === 0) { window.confirm("Todos os mÃ³dulos jÃ¡ foram aplicados!"); return; }
+                      if (pending.length === 0) { window.confirm("Todos os módulos já foram aplicados!"); return; }
 
                       // Sempre garantir que backup rode primeiro
                       if(!completed.has("backup")){
@@ -365,7 +365,7 @@ function App() {
                       }
 
                       const confirmed = window.confirm(
-                        `SerÃ£o aplicados ${pending.length} mÃ³dulos.\n\nUm ponto de restauraÃ§Ã£o do sistema serÃ¡ criado automaticamente antes de iniciar.\n\nAs opÃ§Ãµes "OtimizaÃ§Ã£o Agressiva", "ServiÃ§os para apostado" e "Desativar Defender" nÃ£o serÃ£o usadas.\n\nDeseja continuar?`
+                        `Serão aplicados ${pending.length} módulos.\n\nUm ponto de restauração do sistema será criado automaticamente antes de iniciar.\n\nAs opções "Otimização Agressiva", "Serviços para apostado" e "Desativar Defender" não serão usadas.\n\nDeseja continuar?`
                       );
                       if (!confirmed) return;
 
@@ -377,13 +377,13 @@ function App() {
 
                         // Confirmacoes por modulo
                         if(id === "desativar-apostado"){
-                          if(!window.confirm("Se vc joga apostado nÃ£o recomendo ativar...\n\nDeseja continuar?")) continue;
+                          if(!window.confirm("Se vc joga apostado não recomendo ativar...\n\nDeseja continuar?")) continue;
                         }else if(id === "bloatware"){
-                          if(!window.confirm("SerÃ£o removidos: Edge, OneDrive, Teams, apps prÃ©-instalados...\n\nDeseja continuar?")) continue;
+                          if(!window.confirm("Serão removidos: Edge, OneDrive, Teams, apps pré-instalados...\n\nDeseja continuar?")) continue;
                         }else if(id === "defender-off"){
-                          if(!window.confirm("ATENÃ‡ÃƒO: Isso irÃ¡ desativar completamente o Windows Defender!\n\nDeseja continuar?")) continue;
+                          if(!window.confirm("ATENÃ‡ÃƒO: Isso irá desativar completamente o Windows Defender!\n\nDeseja continuar?")) continue;
                         }else if(currentCompleted.has(id)){
-                          if(!window.confirm(`"${mod.name}" jÃ¡ foi aplicado!\n\nDeseja executar novamente?`)) continue;
+                          if(!window.confirm(`"${mod.name}" já foi aplicado!\n\nDeseja executar novamente?`)) continue;
                         }
 
                         setRunning(id);
@@ -404,14 +404,14 @@ function App() {
                           window.electronAPI.saveCompleted([...currentCompleted]);
                           if(result.restart) setNeedsRestart(true);
                         }catch{
-                          setLogs(prev => [...prev, { level: "err", text: "Erro ao executar mÃ³dulo", ts: Date.now() }]);
+                          setLogs(prev => [...prev, { level: "err", text: "Erro ao executar módulo", ts: Date.now() }]);
                         }
                         setRunning(null);
                       }
                     }}
                       disabled={!!running}
                       className="px-4 py-1.5 rounded-lg bg-neon/10 border border-neon/25 text-neon text-xs font-bold hover:bg-neon/20 transition-all duration-200 disabled:opacity-30">
-                      Usar todos os mÃ³dulos
+                      Usar todos os módulos
                     </button>
                   </div>
                 </div>
@@ -424,7 +424,7 @@ function App() {
                         onContextMenu={(e) => {
                           e.preventDefault();
                           if(!done || running) return;
-                          const confirmed = window.confirm(`Deseja desfazer o mÃ³dulo "${mod.name}"?`);
+                          const confirmed = window.confirm(`Deseja desfazer o módulo "${mod.name}"?`);
                           if(!confirmed) return;
                           setRunning("revert");
                           setLogs([]);
@@ -438,7 +438,7 @@ function App() {
                             });
                             setNeedsRestart(!!result.restart);
                           }).catch(() => {
-                            setLogs(prev => [...prev, { level: "err", text: "Erro ao desfazer mÃ³dulo", ts: Date.now() }]);
+                            setLogs(prev => [...prev, { level: "err", text: "Erro ao desfazer módulo", ts: Date.now() }]);
                           }).finally(() => setRunning(null));
                         }}
                         onMouseEnter={(e) => {
@@ -487,7 +487,7 @@ function App() {
                   <div className="flex items-center gap-3 p-3 bg-red-950/30 border border-red-500/30 rounded-xl">
                     <div className="flex-1">
                       <p className="text-red-300 text-sm font-bold">Reiniciar</p>
-                      <p className="text-red-400/60 text-[10px]">AlteraÃ§Ãµes sÃ³ terÃ£o efeito apÃ³s reiniciar</p>
+                      <p className="text-red-400/60 text-[10px]">Alterações só terão efeito após reiniciar</p>
                     </div>
                     <button onClick={() => {
                       if (window.confirm("Tem certeza que deseja reiniciar o PC agora?")) {

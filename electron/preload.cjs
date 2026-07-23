@@ -14,6 +14,14 @@ contextBridge.exposeInMainWorld("electronAPI", {
       ipcRenderer.removeListener(ch, handler);
     });
   },
+  revertModules: (modules, cb) => {
+    const ch = `log-revert-${Date.now()}`;
+    const handler = (_, log) => cb(log);
+    ipcRenderer.on(ch, handler);
+    return ipcRenderer.invoke("revertModules", modules, ch).finally(() => {
+      ipcRenderer.removeListener(ch, handler);
+    });
+  },
   closeApp: () => ipcRenderer.send("closeApp"),
   minimizeApp: () => ipcRenderer.send("minimizeApp"),
   restartPC: () => ipcRenderer.send("restartPC"),

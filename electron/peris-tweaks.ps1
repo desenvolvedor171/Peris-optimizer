@@ -246,7 +246,7 @@ switch($Module){
   foreach($s in @(
     "PcaSvc","DiagTrack","SysMain","DPS","Sysmon","EventLog","Mpssvc","TapiSrv",
     "WSearch","wuauserv","UsoSvc","BITS","SecurityHealthService","SDRSVC","WbioSrvc",
-    "RemoteRegistry","RetailDemo","Fax","MapsBroker","lfsvc","SharedAccess","DsSvc",
+    "RemoteRegistry","RetailDemo","Fax","MapsBroker","DsSvc",
     "WerSvc","seclogon","WpcMonSvc","ScDeviceEnum","CscService","wisvc",
     "DoSvc","TrkWks","WdiServiceHost","WdiSystemHost","SCardSvr","SEMGRSVC",
     "wbengine","DsmSvc",
